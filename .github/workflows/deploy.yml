@@ -51,7 +51,7 @@ jobs:
             EOF
 
             # 2️⃣ Docker Image aktualisieren
-            docker-compose pull
+            docker compose pull
 
             # 3️⃣ Container neu starten
-            docker-compose up -d --force-recreate
+            docker compose up -d --force-recreate
