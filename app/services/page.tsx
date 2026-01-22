@@ -3,8 +3,17 @@
 import { Speaker, Truck, CalendarCheck } from "lucide-react";
 import Wave from "react-wavify";
 import { theme } from "../components/Theme";
+import { useEffect, useState } from "react";
 
 export default function Leistungen() {
+  type PackageCard = {
+    id: string;
+    title: string;
+    description: string;
+    price: string;
+    highlight: boolean;
+  };
+
   const services = [
     {
       icon: Speaker,
@@ -23,24 +32,51 @@ export default function Leistungen() {
     },
   ];
 
-  const packages = [
+  const fallbackPackages: PackageCard[] = [
     {
+      id: "fallback-1",
       title: "Small Party",
       description: "Ideal für Geburtstage & kleine Feiern.",
       price: "ab 49 €",
+      highlight: false,
     },
     {
+      id: "fallback-2",
       title: "Birthday Special",
       description: "Mehr Leistung & Bass für größere Partys.",
       price: "ab 89 €",
       highlight: true,
     },
     {
+      id: "fallback-3",
       title: "Event Pro",
       description: "Maximaler Sound für große Events.",
       price: "ab 149 €",
+      highlight: false,
     },
   ];
+
+  const [packages, setPackages] = useState<PackageCard[]>(fallbackPackages);
+
+  useEffect(() => {
+    let active = true;
+    const loadPackages = async () => {
+      try {
+        const response = await fetch("/api/packages");
+        if (!response.ok) return;
+        const data = (await response.json()) as PackageCard[];
+        if (active && data.length) {
+          setPackages(data);
+        }
+      } catch {
+        // keep fallback
+      }
+    };
+    loadPackages();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <main className="text-gray-200">
@@ -88,7 +124,7 @@ export default function Leistungen() {
         </div>
 
         {/* SOUND WAVE */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute -bottom-2 left-0 right-0">
           <Wave
             fill="rgba(168,85,247,0.6)"
             paused={false}
@@ -128,9 +164,9 @@ export default function Leistungen() {
         </h2>
 
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-          {packages.map(({ title, description, price, highlight }) => (
+          {packages.map(({ id, title, description, price, highlight }) => (
             <div
-              key={title}
+              key={id}
               className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 shadow-lg ${
                 highlight
                   ? "ring-2 ring-purple-600 bg-[#1f2024]"
@@ -156,7 +192,7 @@ export default function Leistungen() {
           Hol dir noch heute dein Setup und lass deine Feier unvergesslich werden!
         </p>
         <a
-          href="/kontakt"
+          href="/contact"
           className="inline-block px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105 hover:shadow-xl"
           style={{ backgroundColor: theme.primary }}
         >

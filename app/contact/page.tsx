@@ -69,7 +69,7 @@ export default function Contact() {
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute -bottom-2 left-0 right-0">
           <Wave
             fill="rgba(168,85,247,0.6)"
             paused={false}
@@ -219,7 +219,7 @@ export default function Contact() {
             </p>
             <p>
               <a href="tel:+491706480129" className="text-purple-500 hover:underline">+49 170 6480129</a><br/>
-              <a href="mailto:kontakt@rohde-audio.de" className="text-purple-500 hover:underline">kontakt@rohde-audio.de</a>
+              <a href="mailto:info@rohde-audio.com" className="text-purple-500 hover:underline">info@rohde-audio.com</a>
             </p>
             <p className="text-gray-400 mt-4">
               Plane jetzt dein Event mit uns – wir helfen dir, die perfekte Anlage zu finden!

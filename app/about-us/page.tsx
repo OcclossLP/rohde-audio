@@ -82,7 +82,7 @@ export default function About() {
         </div>
 
         {/* SOUND WAVE */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute -bottom-2 left-0 right-0">
           <Wave
             fill="rgba(168,85,247,0.6)"
             paused={false}
@@ -182,7 +182,7 @@ export default function About() {
           Kontaktiere uns und wir sorgen dafür, dass dein Event unvergesslich wird!
         </p>
         <a
-          href="/kontakt"
+          href="/contact"
           className="inline-block px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105 hover:shadow-xl"
           style={{ backgroundColor: theme.primary }}
         >

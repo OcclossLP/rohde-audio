@@ -2,14 +2,26 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0f1012] border-t border-white/10">
+    <footer className="bg-[#0f1012] border-t border-white/10 relative overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-0">
+        <span className="pulse-orb pulse-orb--one" />
+        <span className="pulse-orb pulse-orb--two" />
+        <span className="pulse-orb pulse-orb--three" />
+      </div>
       <div className="max-w-7xl mx-auto px-6 py-20 grid gap-16 md:grid-cols-4 text-gray-400">
         
         {/* BRAND */}
         <div>
-          <h3 className="text-xl font-extrabold text-white mb-4">
-            Rohde <span className="text-purple-500">Audio</span>
-          </h3>
+          <div className="flex items-center gap-3 mb-4">
+            <img
+              src="/favicon.ico"
+              alt="Rohde Audio Logo"
+              className="h-6 w-6 rounded"
+            />
+            <h3 className="text-xl font-extrabold text-white">
+              Rohde <span className="text-purple-500">Audio</span>
+            </h3>
+          </div>
           <p className="text-sm leading-relaxed">
             Musikanlagen Vermietung für Partys & Events.  
             Zuverlässiger Sound, faire Preise und einfacher Hol- & Bringservice.
@@ -70,7 +82,7 @@ export default function Footer() {
           <h4 className="text-white font-semibold mb-4">Kontakt</h4>
           <ul className="space-y-3 text-sm">
             <li>📞 +49 170 6480129</li>
-            <li>✉️ kontakt@rohde-audio.com</li>
+            <li>✉️ info@rohde-audio.com</li>
             <li>📍 Ulrich-Thater-Straße 7, Bonenburg</li>
           </ul>
         </div>

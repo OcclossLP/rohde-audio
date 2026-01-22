@@ -12,12 +12,12 @@ export default function Impressum() {
         </h1>
 
         <p>
-            <b>Angaben gemäß § 5 TMG:</b>
+          <b>Angaben gemäß § 5 TMG</b>
         </p>
 
         <p>
-          Rohde Audio<br />
-          Benjamin Rohde<br />
+          Benjamin Rohde Audiotechnik<br />
+          Inhaber: Benjamin Rohde<br />
           Ulrich-Thater-Straße 7<br />
           34414 Warburg<br />
           Deutschland
@@ -25,15 +25,17 @@ export default function Impressum() {
 
         <p>
           Telefon: <a href="tel:+491706480129" className="text-purple-500">+49 170 6480129</a><br />
-          E-Mail: <a href="mailto:kontakt@rohde-audio.de" className="text-purple-500">kontakt@rohde-audio.de</a>
+          E-Mail: <a href="mailto:info@rohde-audio.com" className="text-purple-500">info@rohde-audio.com</a>
         </p>
 
         <p>
-          Umsatzsteuer-ID: /
+          Umsatzsteuer<br />
+          Kleinunternehmer gemäß § 19 UStG – es wird keine Umsatzsteuer berechnet.
         </p>
 
         <p>
-          Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV: Benjamin Rohde
+          Verantwortlich i.S.d. § 18 Abs. 2 MStV:<br />
+          Benjamin Rohde, Ulrich-Thater-Straße 7, 34414 Warburg
         </p>
       </div>
     </main>

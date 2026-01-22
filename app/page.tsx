@@ -8,6 +8,7 @@ import {
 import Wave from "react-wavify";
 import { theme } from "./components/Theme";
 import { Metadata } from "next";
+import { getPackages } from "@/lib/packages";
 
 export const metadata: Metadata = {
   title: "Rohde Audio – Professionelle Musikanlagen & Eventtechnik",
@@ -51,7 +52,33 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const packages = await getPackages();
+  const packageCards = packages.length
+    ? packages
+    : [
+        {
+          id: "fallback-1",
+          title: "Small Party",
+          description: "Ideal für Geburtstage & kleine Feiern.",
+          price: "ab 49 €",
+          highlight: false,
+        },
+        {
+          id: "fallback-2",
+          title: "Birthday Special",
+          description: "Mehr Leistung & Bass für größere Partys.",
+          price: "ab 89 €",
+          highlight: true,
+        },
+        {
+          id: "fallback-3",
+          title: "Event Pro",
+          description: "Maximaler Sound für große Events.",
+          price: "ab 149 €",
+          highlight: false,
+        },
+      ];
   return (
     <main className="text-gray-200 bg-[#0f1012]">
       {/* ================= HERO ================= */}
@@ -84,14 +111,14 @@ export default function Home() {
 
           <div className="flex justify-center gap-6 flex-wrap">
             <a
-              href="/kontakt"
+              href="/contact"
               className="px-12 py-5 rounded-full font-semibold transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
             >
               Jetzt anfragen
             </a>
             <a
-              href="/leistungen"
+              href="/services"
               className="px-12 py-5 rounded-full font-semibold border border-white/20 hover:bg-white/10 transition"
             >
               Mehr erfahren
@@ -107,7 +134,7 @@ export default function Home() {
         </div>
 
         {/* SOUND WAVE */}
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute -bottom-2 left-0 right-0">
           <Wave
             fill="rgba(168,85,247,0.6)"
             paused={false}
@@ -171,26 +198,9 @@ export default function Home() {
         </h2>
 
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-          {[
-            {
-              title: "Small Party",
-              text: "Ideal für Geburtstage & kleine Feiern.",
-              price: "ab 49 €",
-            },
-            {
-              title: "Birthday Special",
-              text: "Mehr Leistung & Bass für größere Partys.",
-              price: "ab 89 €",
-              highlight: true,
-            },
-            {
-              title: "Event Pro",
-              text: "Maximaler Sound für große Events.",
-              price: "ab 149 €",
-            },
-          ].map(({ title, text, price, highlight }) => (
+          {packageCards.map(({ id, title, description, price, highlight }) => (
             <div
-              key={title}
+              key={id}
               className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 ${
                 highlight
                   ? "ring-2 ring-purple-500 bg-[#1f2024]"
@@ -200,7 +210,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-white mb-4">
                 {title}
               </h3>
-              <p className="text-gray-400 mb-6">{text}</p>
+              <p className="text-gray-400 mb-6">{description}</p>
               <p
                 className="text-3xl font-extrabold"
                 style={{ color: theme.primary }}
@@ -246,7 +256,7 @@ export default function Home() {
           Schreib uns jetzt – wir kümmern uns um den Rest.
         </p>
         <a
-          href="/kontakt"
+          href="/contact"
           className="px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105"
           style={{ backgroundColor: theme.primary }}
         >
