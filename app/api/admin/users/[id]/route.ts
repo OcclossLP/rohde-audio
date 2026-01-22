@@ -1,18 +1,20 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
-type RouteParams = {
-  params: { id: string };
+type RouteContext = {
+  params: Promise<{ id: string }>;
 };
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { id } = await context.params;
   const body = await request.json();
   const name = typeof body?.name === "string" ? body.name.trim() : undefined;
   const role = body?.role === "CUSTOMER" ? "CUSTOMER" : body?.role === "ADMIN" ? "ADMIN" : undefined;
@@ -53,7 +55,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   fields.push("updated_at = ?");
   values.push(new Date().toISOString());
-  values.push(params.id);
+  values.push(id);
 
   if (fields.length === 1) {
     return NextResponse.json({ error: "Keine Daten zum Aktualisieren." }, { status: 400 });
@@ -69,17 +71,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         WHERE id = ?
       `
     )
-    .get(params.id);
+    .get(id);
 
   return NextResponse.json(updated);
 }
 
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  db.prepare("DELETE FROM users WHERE id = ?").run(params.id);
+  const { id } = await context.params;
+  db.prepare("DELETE FROM users WHERE id = ?").run(id);
   return NextResponse.json({ success: true });
 }

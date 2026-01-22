@@ -1,13 +1,14 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
-type RouteParams = {
-  params: { id: string };
+type RouteContext = {
+  params: Promise<{ id: string }>;
 };
 
-export async function PATCH(request: Request, { params }: LocalRouteParams) {
-  const { id } = await params;
+export async function PATCH(request: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,7 +51,7 @@ export async function PATCH(request: Request, { params }: LocalRouteParams) {
 
   fields.push("updated_at = ?");
   values.push(new Date().toISOString());
-  values.push(params.id);
+  values.push(id);
 
   if (fields.length === 1) {
     return NextResponse.json({ error: "Keine Daten zum Aktualisieren." }, { status: 400 });
@@ -66,7 +67,7 @@ export async function PATCH(request: Request, { params }: LocalRouteParams) {
         WHERE id = ?
       `
     )
-    .get(params.id);
+    .get(id);
 
   if (!updated) {
     return NextResponse.json({ error: "Paket nicht gefunden." }, { status: 404 });
@@ -75,12 +76,13 @@ export async function PATCH(request: Request, { params }: LocalRouteParams) {
   return NextResponse.json({ ...updated, highlight: Boolean(updated.highlight) });
 }
 
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  db.prepare("DELETE FROM packages WHERE id = ?").run(params.id);
+  const { id } = await context.params;
+  db.prepare("DELETE FROM packages WHERE id = ?").run(id);
   return NextResponse.json({ success: true });
 }
