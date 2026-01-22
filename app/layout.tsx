@@ -26,6 +26,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content="Deine Website-Beschreibung" />
+      </head>
       <body className="bg-black text-white">
         <Navbar />
         {children}

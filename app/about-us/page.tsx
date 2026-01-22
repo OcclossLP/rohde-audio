@@ -7,7 +7,7 @@ import Wave from "react-wavify";
 export default function About() {
   const story = [
     {
-      year: "Hi, ich bin Benjamin",
+      year: "Hey, ich bin Benjamin",
       title: "Gründer von Rohde Audio",
       text: "Musik und Sound begleiten mich schon mein ganzes Leben. Angefangen hat alles mit kleinen Partys im Freundeskreis, bei denen ich für die Musikanlage verantwortlich war.",
       icon: User,
@@ -21,7 +21,7 @@ export default function About() {
       image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=800&q=80", // Stockbild: Vinyl / Audio
     },
     {
-      year: "2018",
+      year: "2025",
       title: "Gründung Rohde Audio",
       text: "Aus Leidenschaft wurde ein Unternehmen – hochwertige Musikanlagen mit Rundum-Service.",
       icon: User,
