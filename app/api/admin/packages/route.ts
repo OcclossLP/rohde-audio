@@ -3,20 +3,20 @@ import crypto from "crypto";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
+type PackageRow = {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  highlight: number;
+  sortOrder: number;
+};
+
 export async function GET() {
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  type PackageRow = {
-    id: string;
-    title: string;
-    description: string;
-    price: string;
-    highlight: number;
-    sortOrder: number;
-  };
 
   const packages = (db
     .prepare(
