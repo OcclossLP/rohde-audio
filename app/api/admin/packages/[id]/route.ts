@@ -67,7 +67,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         WHERE id = ?
       `
     )
-    .get(id);
+    .get(id) as {
+    id: string;
+    title: string;
+    description: string;
+    price: string;
+    highlight: number;
+    sortOrder: number;
+  } | undefined;
 
   if (!updated) {
     return NextResponse.json({ error: "Paket nicht gefunden." }, { status: 404 });
