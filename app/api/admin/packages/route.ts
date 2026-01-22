@@ -9,7 +9,16 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const packages = db
+  type PackageRow = {
+    id: string;
+    title: string;
+    description: string;
+    price: string;
+    highlight: number;
+    sortOrder: number;
+  };
+
+  const packages = (db
     .prepare(
       `
         SELECT id, title, description, price, highlight, sort_order as sortOrder
@@ -17,15 +26,8 @@ export async function GET() {
         ORDER BY sort_order ASC, created_at ASC
       `
     )
-    .all()
-    .map((row: {
-      id: string;
-      title: string;
-      description: string;
-      price: string;
-      highlight: number;
-      sortOrder: number;
-    }) => ({ ...row, highlight: Boolean(row.highlight) }));
+    .all() as PackageRow[])
+    .map((row) => ({ ...row, highlight: Boolean(row.highlight) }));
   return NextResponse.json(packages);
 }
 
