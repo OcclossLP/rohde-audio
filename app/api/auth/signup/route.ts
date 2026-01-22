@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   const existing = db
     .prepare("SELECT id FROM users WHERE email = ?")
-    .get(email);
+    .get(email) as { id: string } | undefined;
   if (existing) {
     return NextResponse.json(
       { error: "Diese E-Mail ist bereits registriert." },

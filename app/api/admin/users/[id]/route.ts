@@ -4,6 +4,14 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
+type UserRow = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  createdAt: string;
+};
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
@@ -71,7 +79,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         WHERE id = ?
       `
     )
-    .get(id);
+    .get(id) as UserRow | undefined;
+
+  if (!updated) {
+    return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 404 });
+  }
 
   return NextResponse.json(updated);
 }

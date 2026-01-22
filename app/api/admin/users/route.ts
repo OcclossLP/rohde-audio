@@ -4,13 +4,21 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 
+type UserRow = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  createdAt: string;
+};
+
 export async function GET() {
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const users = db
+  const users = (db
     .prepare(
       `
         SELECT id, email, name, role, created_at as createdAt
@@ -18,7 +26,7 @@ export async function GET() {
         ORDER BY created_at DESC
       `
     )
-    .all();
+    .all() as UserRow[]);
   return NextResponse.json(users);
 }
 
@@ -60,7 +68,11 @@ export async function POST(request: Request) {
         WHERE id = ?
       `
     )
-    .get(id);
+    .get(id) as UserRow | undefined;
+
+  if (!created) {
+    return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 404 });
+  }
 
   return NextResponse.json(created, { status: 201 });
 }

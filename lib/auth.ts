@@ -37,7 +37,16 @@ export async function getCurrentUser() {
         WHERE s.token = ?
       `
     )
-    .get(token);
+    .get(token) as {
+    token: string;
+    expiresAt: string;
+    id: string;
+    email: string;
+    name: string | null;
+    role: string;
+    passwordHash: string;
+    passwordSalt: string;
+  } | undefined;
 
   if (!session) return null;
 
