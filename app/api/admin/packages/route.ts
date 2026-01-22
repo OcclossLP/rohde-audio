@@ -70,7 +70,11 @@ export async function POST(request: Request) {
         WHERE id = ?
       `
     )
-    .get(id);
+    .get(id) as PackageRow | undefined;
+
+  if (!created) {
+    return NextResponse.json({ error: "Paket nicht gefunden." }, { status: 404 });
+  }
 
   return NextResponse.json(
     { ...created, highlight: Boolean(created.highlight) },
