@@ -6,7 +6,8 @@ type RouteParams = {
   params: { id: string };
 };
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, { params }: LocalRouteParams) {
+  const { id } = await params;
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
