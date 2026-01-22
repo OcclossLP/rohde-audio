@@ -52,9 +52,17 @@ export const metadata: Metadata = {
   },
 };
 
+type PackageCard = {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  highlight: boolean;
+};
+
 export default async function Home() {
   const packages = await getPackages();
-  const packageCards = packages.length
+  const packageCards: PackageCard[] = packages.length
     ? packages
     : [
         {
