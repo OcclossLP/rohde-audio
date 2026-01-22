@@ -18,7 +18,14 @@ export async function GET() {
       `
     )
     .all()
-    .map((row) => ({ ...row, highlight: Boolean(row.highlight) }));
+    .map((row: {
+      id: string;
+      title: string;
+      description: string;
+      price: string;
+      highlight: number;
+      sortOrder: number;
+    }) => ({ ...row, highlight: Boolean(row.highlight) }));
   return NextResponse.json(packages);
 }
 
