@@ -3,25 +3,27 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 
 COPY . .
 
 RUN pnpm run build
 
-# --- Production Stage ---
-FROM node:20-alpine
+FROM node:20-alpine AS production
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY .env .env
 
 EXPOSE 3000
 
