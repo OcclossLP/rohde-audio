@@ -24,7 +24,14 @@ export async function POST(request: Request) {
         WHERE email = ?
       `
     )
-    .get(email);
+    .get(email) as {
+    id: string;
+    email: string;
+    name: string | null;
+    role: string;
+    passwordHash: string;
+    passwordSalt: string;
+  } | undefined;
 
   if (!user || !verifyPassword(password, user.passwordHash, user.passwordSalt)) {
     return NextResponse.json(
