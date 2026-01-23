@@ -9,7 +9,7 @@ if (!fs.existsSync(path.dirname(resolvedPath))) {
   fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
 }
 
-const globalForDb = global as { db?: Database.Database };
+const globalForDb = global as { db?: ReturnType<typeof Database> };
 
 export const db =
   globalForDb.db ??
