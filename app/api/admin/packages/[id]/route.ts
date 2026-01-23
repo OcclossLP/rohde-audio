@@ -4,21 +4,17 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
 type RouteContext = {
-  params?: { id?: string | string[] };
+  params: Promise<{ id: string }>;
 };
 
-const getPackageId = (request: NextRequest, context: RouteContext) => {
-  const rawId =
-    (Array.isArray(context.params?.id)
-      ? context.params?.id[0]
-      : context.params?.id) ??
-    new URL(request.url).pathname.split("/").pop();
-  const id = typeof rawId === "string" ? rawId.trim() : "";
-  return id;
+const getPackageId = async (request: NextRequest, context: RouteContext) => {
+  const { id } = await context.params;
+  const fallback = new URL(request.url).pathname.split("/").pop();
+  return (id || fallback || "").trim();
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const id = getPackageId(request, context);
+  const id = await getPackageId(request, context);
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -111,7 +107,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const id = getPackageId(request, context);
+  const id = await getPackageId(request, context);
   if (!id) {
     return NextResponse.json({ error: "Paket-ID fehlt." }, { status: 400 });
   }
