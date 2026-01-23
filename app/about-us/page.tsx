@@ -105,7 +105,7 @@ export default function About() {
             {story.map((item, idx) => (
               <div key={idx} className="relative flex flex-col md:flex-row items-center justify-between">
                 {/* Linke Box (immer links, auch wenn Bild rechts) */}
-                <div className="md:w-5/12 p-6 rounded-3xl bg-[#1f2024] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30 md:mr-auto text-right md:pr-12">
+                <div className="md:w-5/12 p-6 rounded-3xl bg-[var(--surface-2)] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30 md:mr-auto text-right md:pr-12">
                   <h3 className="text-2xl font-semibold text-white mb-2 flex items-center justify-end gap-3">
                     <item.icon size={28} style={{ color: theme.primary }} />
                     {item.title}
@@ -134,7 +134,7 @@ export default function About() {
       </section>
 
       {/* ================= VALUES / WHY US ================= */}
-      <section className="py-32 px-6 bg-[#141518]">
+      <section className="py-32 px-6 bg-[var(--surface)]">
         <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-20">
           Warum <span style={{ color: theme.primary }}>uns wählen?</span>
         </h2>
@@ -159,7 +159,7 @@ export default function About() {
           ].map(({ icon: Icon, title, text }) => (
             <div
               key={title}
-              className="group relative rounded-3xl p-10 bg-[#1f2024] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
+              className="group relative rounded-3xl p-10 bg-[var(--surface-2)] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
             >
               <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full mb-6 bg-gradient-to-tr from-purple-500/40 to-purple-700/30 transition-transform duration-300 group-hover:scale-110">
                 <Icon size={40} style={{ color: theme.primary }} />

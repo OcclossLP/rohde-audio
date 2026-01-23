@@ -82,7 +82,7 @@ export default function Contact() {
       <section id="form" className="py-32 px-6" style={{ background: theme.bgTo }}>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
           {/* Kontaktformular */}
-          <div className="group relative rounded-3xl p-10 bg-[#1f2024] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30">
+          <div className="group relative rounded-3xl p-10 bg-[var(--surface-2)] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30">
             <h2 className="text-3xl font-bold text-white mb-8 text-center">
               Anfrage <span style={{ color: theme.primary }}>senden</span>
             </h2>
@@ -108,7 +108,7 @@ export default function Contact() {
                   placeholder: "E-Mail",
                   required: true
                 }].map(({ icon: Icon, name, type, placeholder, required }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[#2a2b30] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     <input
                       type={type}
@@ -135,7 +135,7 @@ export default function Contact() {
                   type: "select",
                   placeholder: "Event-Typ"
                 }].map(({ icon: Icon, name, type, placeholder }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[#2a2b30] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     {type === "select" ? (
                       <select
@@ -177,7 +177,7 @@ export default function Contact() {
                   type: "date",
                   placeholder: "Datum"
                 }].map(({ icon: Icon, name, type, placeholder }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[#2a2b30] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     <input
                       type={type}
@@ -197,7 +197,7 @@ export default function Contact() {
                 value={form.message}
                 onChange={handleChange}
                 rows={5}
-                className="w-full p-4 rounded-xl bg-[#2a2b30] border border-purple-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full p-4 rounded-xl bg-[var(--surface-3)] border border-purple-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
 
               <button
@@ -210,7 +210,7 @@ export default function Contact() {
           </div>
 
           {/* INFO / CTA BOX */}
-          <div className="group relative rounded-3xl p-10 bg-[#1f2024] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30 flex flex-col justify-center gap-6">
+          <div className="group relative rounded-3xl p-10 bg-[var(--surface-2)] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30 flex flex-col justify-center gap-6">
             <h3 className="text-3xl font-bold text-white">
               Kontaktiere uns direkt
             </h3>

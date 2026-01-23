@@ -12,7 +12,7 @@ export default async function AccountPage() {
 
   return (
     <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-3xl mx-auto rounded-3xl border border-white/10 bg-[#1f2024] p-10 shadow-xl">
+      <div className="max-w-3xl mx-auto rounded-3xl border border-white/10 bg-[var(--surface-2)] p-10 shadow-xl">
         <h1 className="text-3xl font-bold text-white mb-4">
           Kundenkonto
         </h1>

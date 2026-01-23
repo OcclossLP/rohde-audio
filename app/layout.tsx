@@ -30,8 +30,24 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="description" content="Deine Website-Beschreibung" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                try {
+                  const stored = localStorage.getItem("theme");
+                  const system = window.matchMedia("(prefers-color-scheme: dark)").matches
+                    ? "dark"
+                    : "light";
+                  const theme = stored || system;
+                  document.documentElement.dataset.theme = theme;
+                } catch {}
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="bg-black text-white">
+      <body className="bg-[var(--page-bg)] text-[var(--page-text)]">
         <Navbar />
         {children}
         <Footer />

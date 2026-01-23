@@ -249,7 +249,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
-                className="rounded-3xl border border-white/10 bg-[#1f2024] p-6 shadow-lg"
+                className="rounded-3xl border border-white/10 bg-[var(--surface-2)] p-6 shadow-lg"
               >
                 <div className="flex items-start justify-between gap-4 mb-5">
                   <div>
@@ -278,7 +278,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                       onChange={(event) =>
                         updatePackage(pkg.id, { title: event.target.value })
                       }
-                      className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
 
@@ -292,7 +292,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                       onChange={(event) =>
                         updatePackage(pkg.id, { description: event.target.value })
                       }
-                      className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
 
@@ -306,7 +306,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                         onChange={(event) =>
                           updatePackage(pkg.id, { price: event.target.value })
                         }
-                        className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
 
@@ -322,7 +322,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                             sortOrder: Number(event.target.value),
                           })
                         }
-                        className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
                   </div>
@@ -334,7 +334,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                       onChange={(event) =>
                         updatePackage(pkg.id, { highlight: event.target.checked })
                       }
-                      className="h-4 w-4 rounded border-white/20 bg-[#2a2b30] text-purple-500 focus:ring-purple-500"
+                      className="h-4 w-4 rounded border-white/20 bg-[var(--surface-3)] text-purple-500 focus:ring-purple-500"
                     />
                     Highlight-Paket hervorheben
                   </label>
@@ -373,7 +373,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
           )}
 
           <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-            <div className="rounded-3xl border border-white/10 bg-[#1f2024] p-6 shadow-lg">
+            <div className="rounded-3xl border border-white/10 bg-[var(--surface-2)] p-6 shadow-lg">
               <h3 className="text-xl font-semibold text-white mb-4">
                 Benutzer anlegen
               </h3>
@@ -387,7 +387,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                     onChange={(event) =>
                       setNewUser((prev) => ({ ...prev, email: event.target.value }))
                     }
-                    className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div>
@@ -399,7 +399,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                     onChange={(event) =>
                       setNewUser((prev) => ({ ...prev, name: event.target.value }))
                     }
-                    className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -415,7 +415,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                           role: event.target.value as "ADMIN" | "CUSTOMER",
                         }))
                       }
-                      className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     >
                       <option value="ADMIN">Admin</option>
                       <option value="CUSTOMER">Kunde</option>
@@ -431,7 +431,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                       onChange={(event) =>
                         setNewUser((prev) => ({ ...prev, password: event.target.value }))
                       }
-                      className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -449,7 +449,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
               {users.map((user) => (
                 <div
                   key={user.id}
-                  className="rounded-3xl border border-white/10 bg-[#1f2024] p-6 shadow-lg"
+                  className="rounded-3xl border border-white/10 bg-[var(--surface-2)] p-6 shadow-lg"
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
@@ -482,7 +482,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                           );
                           handleUpdateUser(user.id, { role });
                         }}
-                        className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       >
                         <option value="ADMIN">Admin</option>
                         <option value="CUSTOMER">Kunde</option>
@@ -506,7 +506,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                         onBlur={(event) =>
                           handleUpdateUser(user.id, { name: event.target.value })
                         }
-                        className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
                   </div>
@@ -525,7 +525,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                           event.target.value = "";
                         }
                       }}
-                      className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                 </div>
@@ -540,7 +540,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
         </div>
         {confirmUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6">
-            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#1f2024] p-8 shadow-2xl">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[var(--surface-2)] p-8 shadow-2xl">
               <h3 className="text-xl font-semibold text-white mb-3">
                 Konto wirklich löschen?
               </h3>

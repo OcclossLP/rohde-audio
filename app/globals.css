@@ -1,28 +1,171 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --page-bg: #0f1012;
+  --page-text: #f4f5f7;
+  --page-muted: #9ca3af;
+  --surface: #141518;
+  --surface-2: #1f2024;
+  --surface-3: #2a2b30;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #a855f7;
+  --accent-soft: rgba(168, 85, 247, 0.35);
+  --nav-bg: rgba(0, 0, 0, 0.4);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+html {
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+html[data-theme="light"] {
+  --page-bg: #f6f2ee;
+  --page-text: #1f2126;
+  --page-muted: #5c5f66;
+  --surface: #ffffff;
+  --surface-2: #f0e9e3;
+  --surface-3: #e8dfd7;
+  --border: rgba(28, 24, 19, 0.12);
+  --accent: #a855f7;
+  --accent-soft: rgba(168, 85, 247, 0.22);
+  --nav-bg: rgba(255, 255, 255, 0.7);
+  --shadow: 0 18px 40px rgba(33, 19, 6, 0.18);
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--page-bg);
+  color: var(--page-text);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% -10%, rgba(168, 85, 247, 0.16), transparent 55%),
+    radial-gradient(circle at 80% -20%, rgba(59, 130, 246, 0.14), transparent 50%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 50%);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity 300ms ease;
+}
+
+html[data-theme="light"] body::before {
+  background:
+    radial-gradient(circle at 18% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
+    radial-gradient(circle at 80% -20%, rgba(251, 191, 36, 0.16), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 50%);
+  opacity: 0.85;
+}
+
+html[data-theme="light"] .text-gray-200 {
+  color: var(--page-text);
+}
+
+html[data-theme="light"] .text-gray-300,
+html[data-theme="light"] .text-gray-400 {
+  color: var(--page-muted);
+}
+
+html[data-theme="light"] .border-white\/10 {
+  border-color: var(--border);
+}
+
+html[data-theme="light"] .border-white\/20 {
+  border-color: rgba(28, 24, 19, 0.2);
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+  color: var(--page-text);
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: var(--page-muted);
+}
+
+main {
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+.theme-toggle {
+  position: relative;
+  width: 62px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: all 300ms ease;
+}
+
+.theme-toggle__track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow);
+  transition: transform 300ms ease, background 300ms ease;
+}
+
+.theme-toggle__icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+  transition: opacity 300ms ease;
+}
+
+.theme-toggle__icon--sun {
+  right: 10px;
+  color: #f59e0b;
+}
+
+.theme-toggle__icon--moon {
+  left: 10px;
+  color: #94a3b8;
+}
+
+.theme-toggle[data-theme="dark"] .theme-toggle__thumb {
+  transform: translateX(0);
+  background: #f8fafc;
+}
+
+.theme-toggle[data-theme="light"] .theme-toggle__thumb {
+  transform: translateX(28px);
+  background: #111827;
+}
+
+.theme-toggle[data-theme="light"] .theme-toggle__icon--sun {
+  opacity: 1;
+}
+
+.theme-toggle[data-theme="dark"] .theme-toggle__icon--moon {
+  opacity: 1;
 }
 
 .pulse-orb {

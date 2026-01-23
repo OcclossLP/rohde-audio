@@ -49,7 +49,7 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-md mx-auto bg-[#1f2024] rounded-3xl p-10 shadow-xl border border-white/10">
+      <div className="max-w-md mx-auto bg-[var(--surface-2)] rounded-3xl p-10 shadow-xl border border-white/10">
         <h1 className="text-3xl font-bold text-white mb-4">
           Konto erstellen
         </h1>
@@ -73,7 +73,7 @@ export default function SignupPage() {
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -87,7 +87,7 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function SignupPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -115,7 +115,7 @@ export default function SignupPage() {
               required
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -124,7 +124,7 @@ export default function SignupPage() {
               type="checkbox"
               checked={acceptTerms}
               onChange={(event) => setAcceptTerms(event.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-white/20 bg-[#2a2b30] text-purple-500 focus:ring-purple-500"
+              className="mt-1 h-4 w-4 rounded border-white/20 bg-[var(--surface-3)] text-purple-500 focus:ring-purple-500"
             />
             <span>
               Ich akzeptiere die{" "}

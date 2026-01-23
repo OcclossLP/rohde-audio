@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { theme } from "./Theme";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-black/40 border-b border-white/10">
+    <nav className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-[var(--nav-bg)] border-b border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/">
           <span className="flex items-center gap-3 font-extrabold text-xl text-white">
@@ -17,7 +18,7 @@ export default function Navbar() {
             Rohde <span style={{ color: theme.primary }}>Audio</span>
           </span>
         </Link>
-        <div className="flex gap-8 text-sm text-gray-300 items-center">
+        <div className="flex gap-6 text-sm text-gray-300 items-center">
           <Link href="/">Startseite</Link>
           <Link href="/services">Leistungen</Link>
           <Link href="/about-us">Über uns</Link>
@@ -28,6 +29,7 @@ export default function Navbar() {
           >
             Login
           </Link>
+          <ThemeToggle />
         </div>
       </div>
     </nav>

@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
 
   return (
     <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-md mx-auto bg-[#1f2024] rounded-3xl p-10 shadow-xl border border-white/10">
+      <div className="max-w-md mx-auto bg-[var(--surface-2)] rounded-3xl p-10 shadow-xl border border-white/10">
         <h1 className="text-3xl font-bold text-white mb-4">
           Login
         </h1>
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl bg-[#2a2b30] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 

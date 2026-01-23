@@ -143,7 +143,7 @@ export default function Leistungen() {
           {services.map(({ icon: Icon, title, text }) => (
             <div
               key={title}
-              className="group relative rounded-3xl p-10 bg-[#1f2024] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
+              className="group relative rounded-3xl p-10 bg-[var(--surface-2)] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
             >
               <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full mb-6 bg-gradient-to-tr from-purple-500/40 to-purple-700/30 transition-transform duration-300 group-hover:scale-110">
                 <Icon size={40} style={{ color: theme.primary }} />
@@ -169,8 +169,8 @@ export default function Leistungen() {
               key={id}
               className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 shadow-lg ${
                 highlight
-                  ? "ring-2 ring-purple-600 bg-[#1f2024]"
-                  : "bg-[#1f2024]"
+                  ? "ring-2 ring-purple-600 bg-[var(--surface-2)]"
+                  : "bg-[var(--surface-2)]"
               }`}
             >
               <h3 className="text-2xl font-bold text-white mb-4">{title}</h3>
