@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="bg-[#0f1012] border-t border-white/10 relative overflow-hidden">
-      <div aria-hidden="true" className="absolute inset-0">
+      <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
         <span className="pulse-orb pulse-orb--one" />
         <span className="pulse-orb pulse-orb--two" />
         <span className="pulse-orb pulse-orb--three" />
