@@ -18,7 +18,16 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
+    phone TEXT,
     name TEXT,
+    notes TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    street TEXT,
+    house_number TEXT,
+    address_extra TEXT,
+    postal_code TEXT,
+    city TEXT,
     role TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
@@ -40,10 +49,29 @@ db.exec(`
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     price TEXT NOT NULL,
+    sale_price TEXT,
     highlight INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS pageviews (
+    id TEXT PRIMARY KEY,
+    path TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS inquiries (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    event_type TEXT,
+    participants TEXT,
+    event_date TEXT,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 `);
 
@@ -85,8 +113,8 @@ const packageCount = db.prepare("SELECT COUNT(*) as count FROM packages").get();
 if (packageCount.count === 0) {
   const insert = db.prepare(
     `
-      INSERT INTO packages (id, title, description, price, highlight, sort_order, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO packages (id, title, description, price, sale_price, highlight, sort_order, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   );
   const packages = [
@@ -119,6 +147,7 @@ if (packageCount.count === 0) {
       pkg.title,
       pkg.description,
       pkg.price,
+      null,
       pkg.highlight,
       pkg.sortOrder,
       now,

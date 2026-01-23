@@ -40,7 +40,7 @@ export default function Contact() {
     <main className="text-gray-200">
       {/* ================= HERO ================= */}
       <section
-        className="relative min-h-screen flex items-center bg-cover bg-center"
+        className="hero-area relative min-h-screen flex items-center bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1618609377864-68609b857e90?q=80&w=1828&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
@@ -48,7 +48,7 @@ export default function Contact() {
       >
         <div
           className="absolute inset-0"
-          style={{ background: `linear-gradient(to bottom, ${theme.bgFrom}cc, ${theme.bgTo}66)` }}
+          style={{ background: `linear-gradient(to bottom, ${theme.heroFrom}cc, ${theme.heroTo}66)` }}
         />
 
         <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
@@ -61,7 +61,7 @@ export default function Contact() {
           <div className="flex justify-center gap-6 flex-wrap">
             <a
               href="#form"
-              className="inline-block px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105"
+              className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
             >
               Mehr erfahren
@@ -82,7 +82,7 @@ export default function Contact() {
       <section id="form" className="py-32 px-6" style={{ background: theme.bgTo }}>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12">
           {/* Kontaktformular */}
-          <div className="group relative rounded-3xl p-10 bg-[var(--surface-2)] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30">
+          <div className="group relative rounded-3xl p-10 bg-(--surface-2) shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30">
             <h2 className="text-3xl font-bold text-white mb-8 text-center">
               Anfrage <span style={{ color: theme.primary }}>senden</span>
             </h2>
@@ -108,7 +108,7 @@ export default function Contact() {
                   placeholder: "E-Mail",
                   required: true
                 }].map(({ icon: Icon, name, type, placeholder, required }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     <input
                       type={type}
@@ -135,7 +135,7 @@ export default function Contact() {
                   type: "select",
                   placeholder: "Event-Typ"
                 }].map(({ icon: Icon, name, type, placeholder }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     {type === "select" ? (
                       <select
@@ -177,7 +177,7 @@ export default function Contact() {
                   type: "date",
                   placeholder: "Datum"
                 }].map(({ icon: Icon, name, type, placeholder }) => (
-                  <div key={name} className="flex items-center gap-3 bg-[var(--surface-3)] p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     <input
                       type={type}
@@ -197,12 +197,12 @@ export default function Contact() {
                 value={form.message}
                 onChange={handleChange}
                 rows={5}
-                className="w-full p-4 rounded-xl bg-[var(--surface-3)] border border-purple-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full p-4 rounded-xl bg-(--surface-3) border border-purple-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
 
               <button
                 type="submit"
-                className="w-full px-10 py-4 bg-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition shadow-lg text-white"
+                className="btn-primary w-full px-10 py-4 bg-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition shadow-lg text-white"
               >
                 Anfrage senden
               </button>
@@ -210,7 +210,7 @@ export default function Contact() {
           </div>
 
           {/* INFO / CTA BOX */}
-          <div className="group relative rounded-3xl p-10 bg-[var(--surface-2)] shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30 flex flex-col justify-center gap-6">
+          <div className="group relative rounded-3xl p-10 bg-(--surface-2) shadow-xl transition hover:-translate-y-2 hover:shadow-purple-600/30 flex flex-col justify-center gap-6">
             <h3 className="text-3xl font-bold text-white">
               Kontaktiere uns direkt
             </h3>

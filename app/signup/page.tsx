@@ -6,8 +6,10 @@ import { theme } from "@/app/components/Theme";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -33,7 +35,7 @@ export default function SignupPage() {
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ firstName, lastName, email, phone, password }),
     });
 
     setLoading(false);
@@ -49,7 +51,7 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-md mx-auto bg-[var(--surface-2)] rounded-3xl p-10 shadow-xl border border-white/10">
+      <div className="max-w-md mx-auto bg-(--surface-2) rounded-3xl p-10 shadow-xl border border-white/10">
         <h1 className="text-3xl font-bold text-white mb-4">
           Konto erstellen
         </h1>
@@ -65,15 +67,30 @@ export default function SignupPage() {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm text-gray-400 mb-2" htmlFor="name">
-              Name (optional)
+            <label className="block text-sm text-gray-400 mb-2" htmlFor="first-name">
+              Vorname
             </label>
             <input
-              id="name"
+              id="first-name"
               type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              required
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-2" htmlFor="last-name">
+              Nachname
+            </label>
+            <input
+              id="last-name"
+              type="text"
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              required
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -87,7 +104,20 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-2" htmlFor="phone">
+              Telefonnummer (optional)
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -101,7 +131,7 @@ export default function SignupPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -115,7 +145,7 @@ export default function SignupPage() {
               required
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -124,7 +154,7 @@ export default function SignupPage() {
               type="checkbox"
               checked={acceptTerms}
               onChange={(event) => setAcceptTerms(event.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-white/20 bg-[var(--surface-3)] text-purple-500 focus:ring-purple-500"
+              className="mt-1 h-4 w-4 rounded border-white/20 bg-(--surface-3) text-purple-500 focus:ring-purple-500"
             />
             <span>
               Ich akzeptiere die{" "}
@@ -138,7 +168,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full px-6 py-3 font-semibold text-white transition hover:scale-[1.02]"
+            className="btn-primary w-full rounded-full px-6 py-3 font-semibold text-white transition hover:scale-[1.02]"
             style={{ backgroundColor: theme.primary }}
           >
             {loading ? "Bitte warten..." : "Registrieren"}

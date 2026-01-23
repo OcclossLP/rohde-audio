@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { createSession, SESSION_COOKIE } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
+const normalizePhone = (value: string) => value.replace(/\s+/g, "");
+
 async function ensureAdminFromEnv() {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -37,12 +39,14 @@ async function ensureAdminFromEnv() {
 export async function POST(request: Request) {
   await ensureAdminFromEnv();
   const body = await request.json();
-  const email = String(body?.email ?? "").trim().toLowerCase();
+  const identifier = String(body?.identifier ?? body?.email ?? "").trim();
+  const email = identifier.toLowerCase();
+  const phone = identifier ? normalizePhone(identifier) : "";
   const password = String(body?.password ?? "");
 
-  if (!email || !password) {
+  if (!identifier || !password) {
     return NextResponse.json(
-      { error: "E-Mail und Passwort sind erforderlich." },
+      { error: "E-Mail oder Telefonnummer und Passwort sind erforderlich." },
       { status: 400 }
     );
   }
@@ -50,14 +54,15 @@ export async function POST(request: Request) {
   const user = db
     .prepare(
       `
-        SELECT id, email, name, role, password_hash as passwordHash, password_salt as passwordSalt
+        SELECT id, email, phone, name, role, password_hash as passwordHash, password_salt as passwordSalt
         FROM users
-        WHERE email = ?
+        WHERE email = ? OR phone = ?
       `
     )
-    .get(email) as {
+    .get(email, phone) as {
     id: string;
     email: string;
+    phone: string | null;
     name: string | null;
     role: string;
     passwordHash: string;

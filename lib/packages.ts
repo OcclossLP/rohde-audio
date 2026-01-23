@@ -5,6 +5,7 @@ type PackageRow = {
   title: string;
   description: string;
   price: string;
+  salePrice: string | null;
   highlight: number;
   sortOrder: number;
 };
@@ -13,7 +14,7 @@ export async function getPackages() {
   const rows = (db
     .prepare(
       `
-        SELECT id, title, description, price, highlight, sort_order as sortOrder
+        SELECT id, title, description, price, sale_price as salePrice, highlight, sort_order as sortOrder
         FROM packages
         ORDER BY sort_order ASC, created_at ASC
       `

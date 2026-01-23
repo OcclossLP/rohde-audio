@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+import AccountClient from "./AccountClient";
 
 export default async function AccountPage() {
   const user = await getCurrentUser();
@@ -10,17 +12,39 @@ export default async function AccountPage() {
     redirect("/admin");
   }
 
+  const profile = db
+    .prepare(
+      `
+        SELECT first_name as firstName,
+               last_name as lastName,
+               email,
+               phone,
+               street,
+               house_number as houseNumber,
+               address_extra as addressExtra,
+               postal_code as postalCode,
+               city
+        FROM users
+        WHERE id = ?
+      `
+    )
+    .get(user.id) as {
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    phone: string | null;
+    street: string | null;
+    houseNumber: string | null;
+    addressExtra: string | null;
+    postalCode: string | null;
+    city: string | null;
+  } | undefined;
+
+  if (!profile) {
+    redirect("/admin/login");
+  }
+
   return (
-    <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-3xl mx-auto rounded-3xl border border-white/10 bg-[var(--surface-2)] p-10 shadow-xl">
-        <h1 className="text-3xl font-bold text-white mb-4">
-          Kundenkonto
-        </h1>
-        <p className="text-gray-400">
-          Der Kundenbereich ist gerade in Vorbereitung. Bald kannst du hier deine
-          Termine und Buchungen verwalten.
-        </p>
-      </div>
-    </main>
+    <AccountClient profile={profile} />
   );
 }

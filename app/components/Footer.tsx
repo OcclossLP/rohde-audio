@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-[var(--page-bg)] border-t border-white/10 relative overflow-hidden">
+    <footer className="bg-(--page-bg) border-t border-white/10 relative overflow-hidden">
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
         <span className="pulse-orb pulse-orb--one" />
         <span className="pulse-orb pulse-orb--two" />

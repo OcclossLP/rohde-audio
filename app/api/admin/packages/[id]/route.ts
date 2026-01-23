@@ -4,14 +4,27 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
 type RouteContext = {
-  params: Promise<{ id: string }>;
+  params?: { id?: string | string[] };
+};
+
+const getPackageId = (request: NextRequest, context: RouteContext) => {
+  const rawId =
+    (Array.isArray(context.params?.id)
+      ? context.params?.id[0]
+      : context.params?.id) ??
+    new URL(request.url).pathname.split("/").pop();
+  const id = typeof rawId === "string" ? rawId.trim() : "";
+  return id;
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const { id } = await context.params;
+  const id = getPackageId(request, context);
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!id) {
+    return NextResponse.json({ error: "Paket-ID fehlt." }, { status: 400 });
   }
 
   const body = await request.json();
@@ -19,6 +32,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const description =
     typeof body?.description === "string" ? body.description.trim() : undefined;
   const price = typeof body?.price === "string" ? body.price.trim() : undefined;
+  const salePriceRaw =
+    typeof body?.salePrice === "string" ? body.salePrice.trim() : undefined;
+  const salePrice =
+    typeof salePriceRaw === "string" ? (salePriceRaw ? salePriceRaw : null) : undefined;
   const highlight =
     typeof body?.highlight === "boolean" ? body.highlight : undefined;
   const sortOrder = Number.isFinite(Number(body?.sortOrder))
@@ -26,7 +43,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     : undefined;
 
   const fields = [];
-  const values: Array<string | number> = [];
+  const values: Array<string | number | null> = [];
 
   if (typeof title !== "undefined") {
     fields.push("title = ?");
@@ -39,6 +56,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (typeof price !== "undefined") {
     fields.push("price = ?");
     values.push(price);
+  }
+  if (typeof salePrice !== "undefined") {
+    fields.push("sale_price = ?");
+    values.push(salePrice);
   }
   if (typeof highlight !== "undefined") {
     fields.push("highlight = ?");
@@ -62,7 +83,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const updated = db
     .prepare(
       `
-        SELECT id, title, description, price, highlight, sort_order as sortOrder
+        SELECT id, title, description, price, sale_price as salePrice, highlight, sort_order as sortOrder
         FROM packages
         WHERE id = ?
       `
@@ -72,6 +93,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     title: string;
     description: string;
     price: string;
+    salePrice: string | null;
     highlight: number;
     sortOrder: number;
   } | undefined;
@@ -89,7 +111,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await context.params;
+  const id = getPackageId(request, context);
+  if (!id) {
+    return NextResponse.json({ error: "Paket-ID fehlt." }, { status: 400 });
+  }
   db.prepare("DELETE FROM packages WHERE id = ?").run(id);
   return NextResponse.json({ success: true });
 }

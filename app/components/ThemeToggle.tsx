@@ -23,7 +23,11 @@ export default function ThemeToggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
     localStorage.setItem("theme", next);
+    document.documentElement.classList.add("theme-transition");
     document.documentElement.dataset.theme = next;
+    window.setTimeout(() => {
+      document.documentElement.classList.remove("theme-transition");
+    }, 620);
   };
 
   if (!mounted) {
@@ -46,8 +50,8 @@ export default function ThemeToggle() {
     >
       <span className="theme-toggle__track" />
       <span className="theme-toggle__thumb" />
-      <span className="theme-toggle__icon theme-toggle__icon--sun">☼</span>
-      <span className="theme-toggle__icon theme-toggle__icon--moon">●</span>
+      <span className="theme-toggle__icon theme-toggle__icon--sun">☀</span>
+      <span className="theme-toggle__icon theme-toggle__icon--moon">☾</span>
     </button>
   );
 }

@@ -6,7 +6,7 @@ import { theme } from "@/app/components/Theme";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
 
     setLoading(false);
@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
 
   return (
     <main className="min-h-screen pt-32 px-6 text-gray-200">
-      <div className="max-w-md mx-auto bg-[var(--surface-2)] rounded-3xl p-10 shadow-xl border border-white/10">
+      <div className="max-w-md mx-auto bg-(--surface-2) rounded-3xl p-10 shadow-xl border border-white/10">
         <h1 className="text-3xl font-bold text-white mb-4">
           Login
         </h1>
@@ -56,16 +56,16 @@ export default function AdminLoginPage() {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm text-gray-400 mb-2" htmlFor="email">
-              E-Mail
+            <label className="block text-sm text-gray-400 mb-2" htmlFor="identifier">
+              E-Mail oder Telefonnummer
             </label>
             <input
-              id="email"
-              type="email"
+              id="identifier"
+              type="text"
               required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -79,14 +79,14 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl bg-[var(--surface-3)] border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full px-6 py-3 font-semibold text-white transition hover:scale-[1.02]"
+            className="btn-primary w-full rounded-full px-6 py-3 font-semibold text-white transition hover:scale-[1.02]"
             style={{ backgroundColor: theme.primary }}
           >
             {loading ? "Bitte warten..." : "Login"}

@@ -11,6 +11,7 @@ export default function Leistungen() {
     title: string;
     description: string;
     price: string;
+    salePrice?: string | null;
     highlight: boolean;
   };
 
@@ -38,6 +39,7 @@ export default function Leistungen() {
       title: "Small Party",
       description: "Ideal für Geburtstage & kleine Feiern.",
       price: "ab 49 €",
+      salePrice: null,
       highlight: false,
     },
     {
@@ -45,6 +47,7 @@ export default function Leistungen() {
       title: "Birthday Special",
       description: "Mehr Leistung & Bass für größere Partys.",
       price: "ab 89 €",
+      salePrice: null,
       highlight: true,
     },
     {
@@ -52,6 +55,7 @@ export default function Leistungen() {
       title: "Event Pro",
       description: "Maximaler Sound für große Events.",
       price: "ab 149 €",
+      salePrice: null,
       highlight: false,
     },
   ];
@@ -82,7 +86,7 @@ export default function Leistungen() {
     <main className="text-gray-200">
       {/* ================= HERO ================= */}
       <section
-        className="relative min-h-screen flex items-center bg-cover bg-center"
+        className="hero-area relative min-h-screen flex items-center bg-cover bg-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
@@ -92,7 +96,7 @@ export default function Leistungen() {
         <div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(to bottom, ${theme.bgFrom}cc, ${theme.bgTo}66)`,
+            background: `linear-gradient(to bottom, ${theme.heroFrom}cc, ${theme.heroTo}66)`,
           }}
         />
 
@@ -108,7 +112,7 @@ export default function Leistungen() {
           <div className="flex justify-center gap-6 flex-wrap">
             <a
               href="#pakete"
-              className="inline-block px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105"
+              className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
             >
               Direkt zu den Paketen
@@ -143,12 +147,12 @@ export default function Leistungen() {
           {services.map(({ icon: Icon, title, text }) => (
             <div
               key={title}
-              className="group relative rounded-3xl p-10 bg-[var(--surface-2)] transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
+              className="group relative rounded-3xl p-10 bg-(--surface-2) transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/30"
             >
               <div className="mx-auto w-20 h-20 flex items-center justify-center rounded-full mb-6 bg-gradient-to-tr from-purple-500/40 to-purple-700/30 transition-transform duration-300 group-hover:scale-110">
                 <Icon size={40} style={{ color: theme.primary }} />
               </div>
-              <h3 className="text-2xl font-semibold text-white mb-4 relative inline-block group-hover:after:content-[''] after:block after:w-0 after:h-[3px] after:bg-purple-500 after:rounded-full after:transition-all after:duration-300 group-hover:after:w-full">
+              <h3 className="text-2xl font-semibold text-white mb-4 relative inline-block group-hover:after:content-[''] after:block after:w-0 after:h-0.75 after:bg-purple-500 after:rounded-full after:transition-all after:duration-300 group-hover:after:w-full">
                 {title}
               </h3>
               <p className="text-gray-400 leading-relaxed">{text}</p>
@@ -164,20 +168,31 @@ export default function Leistungen() {
         </h2>
 
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-          {packages.map(({ id, title, description, price, highlight }) => (
+          {packages.map(({ id, title, description, price, salePrice, highlight }) => (
             <div
               key={id}
               className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 shadow-lg ${
                 highlight
-                  ? "ring-2 ring-purple-600 bg-[var(--surface-2)]"
-                  : "bg-[var(--surface-2)]"
+                  ? "ring-2 ring-purple-600 bg-(--surface-2)"
+                  : "bg-(--surface-2)"
               }`}
             >
               <h3 className="text-2xl font-bold text-white mb-4">{title}</h3>
               <p className="text-gray-400 mb-6">{description}</p>
-              <p className="text-3xl font-extrabold" style={{ color: theme.primary }}>
-                {price}
-              </p>
+              {salePrice ? (
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-400 line-through">
+                    {price}
+                  </p>
+                  <p className="text-3xl font-extrabold" style={{ color: theme.primary }}>
+                    {salePrice}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-3xl font-extrabold" style={{ color: theme.primary }}>
+                  {price}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -193,7 +208,7 @@ export default function Leistungen() {
         </p>
         <a
           href="/contact"
-          className="inline-block px-14 py-6 rounded-full font-semibold text-lg transition hover:scale-105 hover:shadow-xl"
+          className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105 hover:shadow-xl"
           style={{ backgroundColor: theme.primary }}
         >
           Jetzt anfragen

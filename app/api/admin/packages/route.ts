@@ -8,6 +8,7 @@ type PackageRow = {
   title: string;
   description: string;
   price: string;
+  salePrice: string | null;
   highlight: number;
   sortOrder: number;
 };
@@ -21,7 +22,7 @@ export async function GET() {
   const packages = (db
     .prepare(
       `
-        SELECT id, title, description, price, highlight, sort_order as sortOrder
+        SELECT id, title, description, price, sale_price as salePrice, highlight, sort_order as sortOrder
         FROM packages
         ORDER BY sort_order ASC, created_at ASC
       `
@@ -41,6 +42,9 @@ export async function POST(request: Request) {
   const title = String(body?.title ?? "").trim();
   const description = String(body?.description ?? "").trim();
   const price = String(body?.price ?? "").trim();
+  const salePriceRaw =
+    typeof body?.salePrice === "string" ? body.salePrice.trim() : "";
+  const salePrice = salePriceRaw ? salePriceRaw : null;
   const highlight = Boolean(body?.highlight ?? false);
   const sortOrder = Number.isFinite(Number(body?.sortOrder))
     ? Number(body.sortOrder)
@@ -57,15 +61,25 @@ export async function POST(request: Request) {
   const now = new Date().toISOString();
   db.prepare(
     `
-      INSERT INTO packages (id, title, description, price, highlight, sort_order, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO packages (id, title, description, price, sale_price, highlight, sort_order, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
-  ).run(id, title, description, price, highlight ? 1 : 0, sortOrder, now, now);
+  ).run(
+    id,
+    title,
+    description,
+    price,
+    salePrice,
+    highlight ? 1 : 0,
+    sortOrder,
+    now,
+    now
+  );
 
   const created = db
     .prepare(
       `
-        SELECT id, title, description, price, highlight, sort_order as sortOrder
+        SELECT id, title, description, price, sale_price as salePrice, highlight, sort_order as sortOrder
         FROM packages
         WHERE id = ?
       `
