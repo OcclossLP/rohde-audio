@@ -48,6 +48,10 @@ jobs:
             # 1️⃣ .env Datei mit Secrets schreiben
             cat > .env <<EOF
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            ADMIN_NAME=${{ secrets.ADMIN_NAME }}
+            DATABASE_PATH=${{ secrets.DATABASE_PATH }}
             EOF
 
             # 2️⃣ Docker Image aktualisieren

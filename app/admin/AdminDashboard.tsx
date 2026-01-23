@@ -35,6 +35,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [userMessage, setUserMessage] = useState<string | null>(null);
+  const [confirmUser, setConfirmUser] = useState<AdminUser | null>(null);
   const [newUser, setNewUser] = useState<{
     email: string;
     name: string;
@@ -197,6 +198,13 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
       const payload = await response.json().catch(() => null);
       setUserMessage(payload?.error ?? "Löschen fehlgeschlagen.");
     }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmUser) return;
+    const userId = confirmUser.id;
+    setConfirmUser(null);
+    await handleDeleteUser(userId);
   };
 
   return (
@@ -451,7 +459,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                       <p className="text-sm text-gray-400">{user.email}</p>
                     </div>
                     <button
-                      onClick={() => handleDeleteUser(user.id)}
+                      onClick={() => setConfirmUser(user)}
                       className="text-xs text-red-300 hover:text-red-200 transition"
                     >
                       Löschen
@@ -530,6 +538,34 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
             </div>
           </div>
         </div>
+        {confirmUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6">
+            <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#1f2024] p-8 shadow-2xl">
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Konto wirklich löschen?
+              </h3>
+              <p className="text-sm text-gray-400 mb-6">
+                Du bist dabei, das Konto von{" "}
+                <span className="text-white">{confirmUser.email}</span> zu löschen.
+                Dieser Vorgang kann nicht rückgängig gemacht werden.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setConfirmUser(null)}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-white bg-red-500/80 hover:bg-red-500 transition"
+                >
+                  Löschen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
