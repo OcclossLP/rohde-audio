@@ -8,6 +8,7 @@ declare module "better-sqlite3" {
 
   export interface DatabaseConstructor {
     (path: string, options?: any): DatabaseInstance;
+    new (path: string, options?: any): DatabaseInstance;
   }
 
   const Database: DatabaseConstructor;
