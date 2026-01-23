@@ -10,6 +10,8 @@ import { theme } from "./components/Theme";
 import { Metadata } from "next";
 import { getPackages } from "@/lib/packages";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Rohde Audio – Professionelle Musikanlagen & Eventtechnik",
   description:
@@ -213,7 +215,7 @@ export default async function Home() {
           {packageCards.map(({ id, title, description, price, salePrice, highlight }) => (
             <div
               key={id}
-              className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 ${
+              className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/20 ${
                 highlight
                   ? "ring-2 ring-purple-500 bg-(--surface-2)"
                   : "bg-(--surface-2)"
