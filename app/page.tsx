@@ -258,7 +258,7 @@ export default async function Home() {
 
         <p className="mt-10 text-center text-xs text-gray-400">
           <sup className="mr-1">*</sup>
-          Hinweis: Preise ab - abhängig von Mietdauer, Ort und gewünschtem Setup
+          Hinweis: Preise ab sind abhängig von Mietdauer, Ort und gewünschtem Setup
           (Lieferung / Aufbau optional).
         </p>
       </section>
