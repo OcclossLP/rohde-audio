@@ -21,8 +21,8 @@ async function ensureAdminFromEnv() {
   const now = new Date().toISOString();
   db.prepare(
     `
-      INSERT INTO users (id, email, name, role, password_hash, password_salt, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, name, role, password_hash, password_salt, email_verified_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).run(
     crypto.randomUUID(),
@@ -31,6 +31,7 @@ async function ensureAdminFromEnv() {
     "ADMIN",
     passwordHash,
     passwordSalt,
+    now,
     now,
     now
   );
@@ -54,7 +55,8 @@ export async function POST(request: Request) {
   const user = db
     .prepare(
       `
-        SELECT id, email, phone, name, role, password_hash as passwordHash, password_salt as passwordSalt
+        SELECT id, email, phone, name, role, password_hash as passwordHash, password_salt as passwordSalt,
+               email_verified_at as emailVerifiedAt
         FROM users
         WHERE email = ? OR phone = ?
       `
@@ -67,6 +69,7 @@ export async function POST(request: Request) {
     role: string;
     passwordHash: string;
     passwordSalt: string;
+    emailVerifiedAt: string | null;
   } | undefined;
 
   if (!user || !verifyPassword(password, user.passwordHash, user.passwordSalt)) {
@@ -87,5 +90,6 @@ export async function POST(request: Request) {
     path: "/",
   });
 
-  return NextResponse.json({ success: true, role: user.role });
+  const verified = user.role === "ADMIN" || Boolean(user.emailVerifiedAt);
+  return NextResponse.json({ success: true, role: user.role, verified });
 }

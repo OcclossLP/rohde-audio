@@ -15,6 +15,9 @@ type InquiryRow = {
   phone: string | null;
   firstName: string | null;
   lastName: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
 };
 
 export async function GET() {
@@ -27,6 +30,9 @@ export async function GET() {
     .prepare(
       `
         SELECT i.id,
+               i.contact_name as contactName,
+               i.contact_email as contactEmail,
+               i.contact_phone as contactPhone,
                i.event_type as eventType,
                i.participants,
                i.event_date as eventDate,

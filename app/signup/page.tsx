@@ -1,20 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { theme } from "@/app/components/Theme";
+
+type InquiryDraft = {
+  eventType: string;
+  participants: string;
+  eventDate: string;
+  message: string;
+};
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [inquiryDraft, setInquiryDraft] = useState<InquiryDraft | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const prefillFirstName = searchParams.get("firstName") ?? "";
+    const prefillLastName = searchParams.get("lastName") ?? "";
+    const prefillEmail = searchParams.get("email") ?? "";
+    const prefillPhone = searchParams.get("phone") ?? "";
+    const inquiry = {
+      eventType: searchParams.get("eventType") ?? "",
+      participants: searchParams.get("participants") ?? "",
+      eventDate: searchParams.get("date") ?? "",
+      message: searchParams.get("message") ?? "",
+    };
+
+    if (prefillFirstName) setFirstName(prefillFirstName);
+    if (prefillLastName) setLastName(prefillLastName);
+    if (prefillEmail) setEmail(prefillEmail);
+    if (prefillPhone) setPhone(prefillPhone);
+    if (inquiry.message) setInquiryDraft(inquiry);
+  }, [searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,11 +60,32 @@ export default function SignupPage() {
     }
 
     setLoading(true);
+    const queryInquiry = searchParams
+      ? {
+          eventType: searchParams.get("eventType") ?? "",
+          participants: searchParams.get("participants") ?? "",
+          eventDate: searchParams.get("date") ?? "",
+          message: searchParams.get("message") ?? "",
+        }
+      : null;
+    const activeInquiry =
+      inquiryDraft?.message
+        ? inquiryDraft
+        : queryInquiry?.message
+        ? queryInquiry
+        : null;
 
     const response = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, email, phone, password }),
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        phone,
+        password,
+        inquiry: activeInquiry,
+      }),
     });
 
     setLoading(false);
@@ -46,7 +96,7 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/admin/login");
+    router.push("/verify");
   };
 
   return (
@@ -55,9 +105,14 @@ export default function SignupPage() {
         <h1 className="text-3xl font-bold text-white mb-4">
           Konto erstellen
         </h1>
-        <p className="text-gray-400 mb-8">
+        <p className="text-gray-400 mb-4">
           Erstelle deinen Zugang für künftige Buchungen.
         </p>
+        {inquiryDraft?.message && (
+          <div className="mb-6 rounded-xl border border-purple-500/30 bg-purple-500/10 px-4 py-3 text-sm text-purple-100">
+            Deine Anfrage wird nach der Registrierung automatisch gesendet.
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-200">

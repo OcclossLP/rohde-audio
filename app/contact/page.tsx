@@ -2,12 +2,15 @@
 
 import { theme } from "../components/Theme";
 import { useState } from "react";
-import { Calendar, User, Mail, Phone, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Calendar, User, Mail, Phone, Users, UserPlus, Send } from "lucide-react";
 import Wave from "react-wavify";
 
 export default function Contact() {
+  const router = useRouter();
   const [form, setForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     eventType: "",
@@ -16,6 +19,10 @@ export default function Contact() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+  const [pendingForm, setPendingForm] = useState<typeof form | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -25,15 +32,54 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitError(null);
+    setPendingForm(form);
+    setShowAccountPrompt(true);
+  };
 
-    await fetch("/api/contact", {
+  const submitAsGuest = async (payload: typeof form) => {
+    setSubmitError(null);
+    setSubmitting(true);
+    const response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
-
+    setSubmitting(false);
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      setSubmitError(data?.error ?? "Oh, das hat leider nicht funktioniert.");
+      setShowAccountPrompt(false);
+      setPendingForm(null);
+      return;
+    }
     setSubmitted(true);
-    setForm({ name: "", email: "", phone: "", eventType: "", participants: "", date: "", message: "" });
+    setForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      eventType: "",
+      participants: "",
+      date: "",
+      message: "",
+    });
+    setShowAccountPrompt(false);
+    setPendingForm(null);
+  };
+
+  const handleAccountCreate = () => {
+    const payload = pendingForm ?? form;
+    const params = new URLSearchParams();
+    if (payload.firstName) params.set("firstName", payload.firstName);
+    if (payload.lastName) params.set("lastName", payload.lastName);
+    if (payload.email) params.set("email", payload.email);
+    if (payload.phone) params.set("phone", payload.phone);
+    if (payload.eventType) params.set("eventType", payload.eventType);
+    if (payload.participants) params.set("participants", payload.participants);
+    if (payload.date) params.set("date", payload.date);
+    if (payload.message) params.set("message", payload.message);
+    router.push(`/signup?${params.toString()}`);
   };
 
   return (
@@ -92,20 +138,25 @@ export default function Contact() {
                 Danke! Wir haben deine Anfrage erhalten und melden uns bald.
               </div>
             )}
+            {submitError && (
+              <div className="bg-red-500/10 text-red-200 border border-red-500/30 p-4 rounded-xl mb-6 text-center">
+                {submitError}
+              </div>
+            )}
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                 {[{
                   icon: User,
-                  name: "name",
+                  name: "firstName",
                   type: "text",
-                  placeholder: "Name",
+                  placeholder: "Vorname",
                   required: true
                 }, {
-                  icon: Mail,
-                  name: "email",
-                  type: "email",
-                  placeholder: "E-Mail",
+                  icon: User,
+                  name: "lastName",
+                  type: "text",
+                  placeholder: "Nachname",
                   required: true
                 }].map(({ icon: Icon, name, type, placeholder, required }) => (
                   <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
@@ -125,58 +176,17 @@ export default function Contact() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {[{
+                  icon: Mail,
+                  name: "email",
+                  type: "email",
+                  placeholder: "E-Mail",
+                  required: true
+                }, {
                   icon: Phone,
                   name: "phone",
                   type: "tel",
                   placeholder: "Telefon"
-                }, {
-                  icon: Users,
-                  name: "eventType",
-                  type: "select",
-                  placeholder: "Event-Typ"
-                }].map(({ icon: Icon, name, type, placeholder }) => (
-                  <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
-                    <Icon size={24} className="text-purple-500" />
-                    {type === "select" ? (
-                      <select
-                        name={name}
-                        value={form[name as keyof typeof form]}
-                        onChange={handleChange}
-                        required
-                        className="bg-transparent w-full text-white focus:outline-none"
-                      >
-                        <option value="">{placeholder}</option>
-                        <option value="Geburtstag">Geburtstag</option>
-                        <option value="Hochzeit">Hochzeit</option>
-                        <option value="Firmenfeier">Firmenfeier</option>
-                        <option value="Andere">Andere</option>
-                      </select>
-                    ) : (
-                      <input
-                        type={type}
-                        name={name}
-                        placeholder={placeholder}
-                        value={form[name as keyof typeof form]}
-                        onChange={handleChange}
-                        className="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {[{
-                  icon: Users,
-                  name: "participants",
-                  type: "number",
-                  placeholder: "Teilnehmerzahl"
-                }, {
-                  icon: Calendar,
-                  name: "date",
-                  type: "date",
-                  placeholder: "Datum"
-                }].map(({ icon: Icon, name, type, placeholder }) => (
+                }].map(({ icon: Icon, name, type, placeholder, required }) => (
                   <div key={name} className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
                     <Icon size={24} className="text-purple-500" />
                     <input
@@ -185,10 +195,53 @@ export default function Contact() {
                       placeholder={placeholder}
                       value={form[name as keyof typeof form]}
                       onChange={handleChange}
+                      required={required}
                       className="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
                     />
                   </div>
                 ))}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <Users size={24} className="text-purple-500" />
+                  <select
+                    name="eventType"
+                    value={form.eventType}
+                    onChange={handleChange}
+                    required
+                    className="bg-transparent w-full text-white focus:outline-none"
+                  >
+                    <option value="">Event-Typ</option>
+                    <option value="Geburtstag">Geburtstag</option>
+                    <option value="Hochzeit">Hochzeit</option>
+                    <option value="Firmenfeier">Firmenfeier</option>
+                    <option value="Andere">Andere</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                  <Users size={24} className="text-purple-500" />
+                  <input
+                    type="number"
+                    name="participants"
+                    placeholder="Teilnehmerzahl"
+                    value={form.participants}
+                    onChange={handleChange}
+                    className="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 bg-(--surface-3) p-4 rounded-xl border border-purple-600 focus-within:ring-2 focus-within:ring-purple-500">
+                <Calendar size={24} className="text-purple-500" />
+                <input
+                  type="date"
+                  name="date"
+                  placeholder="Datum"
+                  value={form.date}
+                  onChange={handleChange}
+                  className="bg-transparent w-full text-white placeholder-gray-400 focus:outline-none"
+                />
               </div>
 
               <textarea
@@ -207,6 +260,70 @@ export default function Contact() {
                 Anfrage senden
               </button>
             </form>
+            {showAccountPrompt && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6">
+                <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-(--surface-2) p-8 text-center shadow-2xl">
+                  <h3 className="text-2xl font-semibold text-white mb-2">
+                    Account erstellen?
+                  </h3>
+                  <p className="text-gray-400 mb-6">
+                    Entscheide dich jetzt: Anfrage direkt senden oder Konto anlegen,
+                    um alles im Kundenportal zu verwalten.
+                  </p>
+                  <div className="mb-6 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-(--surface-3) p-4 text-left">
+                      <div className="flex items-center gap-3 text-white">
+                        <Send size={22} className="text-purple-400" />
+                        <span className="text-sm font-semibold">Als Gast fortfahren</span>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Schnell senden, keine Registrierung notwendig.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-(--surface-3) p-4 text-left">
+                      <div className="flex items-center gap-3 text-white">
+                        <UserPlus size={22} className="text-purple-400" />
+                        <span className="text-sm font-semibold">Account erstellen</span>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Anfrage wird automatisch deinem Konto zugeordnet.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const payload = pendingForm ?? form;
+                        submitAsGuest(payload);
+                      }}
+                      disabled={submitting}
+                      className="rounded-full px-5 py-3 text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition"
+                    >
+                      {submitting ? "Bitte warten..." : "Als Gast fortfahren"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAccountCreate}
+                      className="btn-primary rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]"
+                      style={{ backgroundColor: theme.primary }}
+                    >
+                      Account erstellen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAccountPrompt(false);
+                        setPendingForm(null);
+                      }}
+                      className="rounded-full px-5 py-3 text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition"
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* INFO / CTA BOX */}

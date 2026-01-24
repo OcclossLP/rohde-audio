@@ -19,12 +19,12 @@ export default function Leistungen() {
     {
       icon: Speaker,
       title: "Musikanlagen",
-      text: "Kraftvolle PA-Systeme mit sattem Bass, klaren Höhen und vollem Sound für jede Raumgröße.",
+      text: "Kraftvolle PA-Systeme mit sattem Bass, klaren Höhen und vollem Sound für dein Event.",
     },
     {
       icon: Truck,
       title: "Hol- & Bringservice",
-      text: "Wir liefern deine Anlage direkt vor die Tür und holen sie nach dem Event wieder ab – stressfrei.",
+      text: "Wir liefern deine Anlage direkt zur Location und holen sie nach dem Event wieder ab – stressfrei.",
     },
     {
       icon: CalendarCheck,
@@ -36,7 +36,7 @@ export default function Leistungen() {
   const fallbackPackages: PackageCard[] = [
     {
       id: "fallback-1",
-      title: "Small Party",
+      title: "Paket S",
       description: "Ideal für Geburtstage & kleine Feiern.",
       price: "ab 49 €",
       salePrice: null,
@@ -44,17 +44,17 @@ export default function Leistungen() {
     },
     {
       id: "fallback-2",
-      title: "Birthday Special",
+      title: "Paket M",
       description: "Mehr Leistung & Bass für größere Partys.",
-      price: "ab 89 €",
+      price: "ab 75 €",
       salePrice: null,
       highlight: true,
     },
     {
       id: "fallback-3",
-      title: "Event Pro",
+      title: "Paket L",
       description: "Maximaler Sound für große Events.",
-      price: "ab 149 €",
+      price: "ab 119 €",
       salePrice: null,
       highlight: false,
     },
@@ -171,7 +171,7 @@ export default function Leistungen() {
           {packages.map(({ id, title, description, price, salePrice, highlight }) => (
             <div
               key={id}
-              className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 shadow-lg ${
+              className={`rounded-3xl p-10 text-center transition hover:-translate-y-2 hover:shadow-xl hover:shadow-purple-600/20 shadow-lg ${
                 highlight
                   ? "ring-2 ring-purple-600 bg-(--surface-2)"
                   : "bg-(--surface-2)"
@@ -186,16 +186,24 @@ export default function Leistungen() {
                   </p>
                   <p className="text-3xl font-extrabold" style={{ color: theme.primary }}>
                     {salePrice}
+                    <sup className="ml-1 text-sm text-gray-400">*</sup>
                   </p>
                 </div>
               ) : (
                 <p className="text-3xl font-extrabold" style={{ color: theme.primary }}>
                   {price}
+                  <sup className="ml-1 text-sm text-gray-400">*</sup>
                 </p>
               )}
             </div>
           ))}
         </div>
+
+        <p className="mt-10 text-center text-xs text-gray-400">
+          <sup className="mr-1">*</sup>
+          Hinweis: Preise ab - abhängig von Mietdauer, Ort und gewünschtem Setup
+          (Lieferung/ Aufbau optional).
+        </p>
       </section>
 
       {/* ================= FINAL CTA ================= */}

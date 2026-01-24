@@ -67,6 +67,9 @@ type Inquiry = {
   phone: string | null;
   firstName: string | null;
   lastName: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
 };
 
 export default function AdminDashboard({ userName }: AdminDashboardProps) {
@@ -79,6 +82,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [inquiriesLoading, setInquiriesLoading] = useState(false);
   const [activeInquiry, setActiveInquiry] = useState<Inquiry | null>(null);
   const [activeInquiryStatus, setActiveInquiryStatus] = useState("open");
+  const [activeInquiryNote, setActiveInquiryNote] = useState("");
   const [inquiryFilter, setInquiryFilter] = useState<
     "all" | "open" | "in_progress" | "planning" | "confirmed" | "done" | "rejected"
   >("all");
@@ -88,7 +92,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [userMessage, setUserMessage] = useState<string | null>(null);
   const [confirmUser, setConfirmUser] = useState<AdminUser | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "views" | "packages" | "users" | "usersList" | "inquiries" | "settings"
+    "views" | "packages" | "users" | "usersList" | "inquiries" | "emails" | "settings"
   >("views");
   const [newUser, setNewUser] = useState<{
     email: string;
@@ -138,6 +142,12 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [noteEditorUser, setNoteEditorUser] = useState<AdminUser | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [addressViewerUser, setAddressViewerUser] = useState<AdminUser | null>(null);
+  const [mailUserId, setMailUserId] = useState("");
+  const [mailSubject, setMailSubject] = useState("");
+  const [mailBody, setMailBody] = useState("");
+  const [mailMessage, setMailMessage] = useState<string | null>(null);
+  const [mailError, setMailError] = useState<string | null>(null);
+  const [mailSending, setMailSending] = useState(false);
 
   const loadPackages = async () => {
     setLoading(true);
@@ -183,9 +193,39 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
     setInquiriesLoading(false);
   };
 
+  const handleSendMail = async () => {
+    setMailMessage(null);
+    setMailError(null);
+    if (!mailUserId || !mailSubject.trim() || !mailBody.trim()) {
+      setMailError("Bitte Empfänger, Betreff und Nachricht ausfüllen.");
+      return;
+    }
+    setMailSending(true);
+    const response = await fetch("/api/admin/send-email", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: mailUserId,
+        subject: mailSubject.trim(),
+        message: mailBody.trim(),
+      }),
+    });
+    setMailSending(false);
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      setMailError(payload?.error ?? "E-Mail konnte nicht gesendet werden.");
+      return;
+    }
+    setMailMessage("E-Mail wurde versendet.");
+    setMailSubject("");
+    setMailBody("");
+  };
+
   const openInquiry = (inquiry: Inquiry) => {
     setActiveInquiry(inquiry);
     setActiveInquiryStatus(inquiry.status);
+    setActiveInquiryNote("");
   };
 
   const saveInquiryStatus = async () => {
@@ -194,7 +234,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ status: activeInquiryStatus }),
+      body: JSON.stringify({ status: activeInquiryStatus, message: activeInquiryNote }),
     });
     if (!response.ok) {
       return;
@@ -539,6 +579,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
             { id: "users", label: "Benutzerverwaltung" },
             { id: "usersList", label: "Benutzerliste" },
             { id: "inquiries", label: "Anfragen" },
+            { id: "emails", label: "Mails" },
             { id: "settings", label: "Settings" },
           ].map(({ id, label }) => (
             <button
@@ -1397,8 +1438,8 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                     {filteredInquiries.map((inquiry) => {
                       const nameParts = getNameParts({
                         id: inquiry.userId,
-                        email: inquiry.email,
-                        phone: inquiry.phone,
+                        email: inquiry.contactEmail ?? inquiry.email,
+                        phone: inquiry.contactPhone ?? inquiry.phone,
                         name: null,
                         firstName: inquiry.firstName,
                         lastName: inquiry.lastName,
@@ -1411,6 +1452,12 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                         role: "CUSTOMER",
                         createdAt: inquiry.createdAt,
                       });
+                      const displayName =
+                        inquiry.contactName ||
+                        `${nameParts.firstName} ${nameParts.lastName}`.trim() ||
+                        "Gast";
+                      const displayEmail = inquiry.contactEmail ?? inquiry.email;
+                      const displayPhone = inquiry.contactPhone ?? inquiry.phone;
                       return (
                         <tr
                           key={inquiry.id}
@@ -1420,10 +1467,10 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                             {formatUserDate(inquiry.createdAt)}
                           </td>
                           <td className="px-4 py-3">
-                            {`${nameParts.firstName} ${nameParts.lastName}`.trim() || "—"}
+                            {displayName || "—"}
                           </td>
-                          <td className="px-4 py-3">{inquiry.email}</td>
-                          <td className="px-4 py-3">{inquiry.phone ?? "—"}</td>
+                          <td className="px-4 py-3">{displayEmail}</td>
+                          <td className="px-4 py-3">{displayPhone ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.eventType ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.participants ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.eventDate ?? "—"}</td>
@@ -1509,15 +1556,18 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
               <div className="mt-6 space-y-4 text-sm text-gray-200">
                 <div>
                   <span className="text-gray-400">Kunde:</span>{" "}
-                  {activeInquiry.firstName || activeInquiry.lastName
-                    ? `${activeInquiry.firstName ?? ""} ${activeInquiry.lastName ?? ""}`.trim()
-                    : "—"}
+                  {activeInquiry.contactName ||
+                    (activeInquiry.firstName || activeInquiry.lastName
+                      ? `${activeInquiry.firstName ?? ""} ${activeInquiry.lastName ?? ""}`.trim()
+                      : "Gast")}
                 </div>
                 <div>
-                  <span className="text-gray-400">E-Mail:</span> {activeInquiry.email}
+                  <span className="text-gray-400">E-Mail:</span>{" "}
+                  {activeInquiry.contactEmail ?? activeInquiry.email}
                 </div>
                 <div>
-                  <span className="text-gray-400">Telefon:</span> {activeInquiry.phone ?? "—"}
+                  <span className="text-gray-400">Telefon:</span>{" "}
+                  {activeInquiry.contactPhone ?? activeInquiry.phone ?? "—"}
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
@@ -1555,6 +1605,18 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                     <option value="done">Abgeschlossen</option>
                     <option value="rejected">Abgelehnt</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Nachricht an den Kunden (optional)
+                  </label>
+                  <textarea
+                    value={activeInquiryNote}
+                    onChange={(event) => setActiveInquiryNote(event.target.value)}
+                    rows={4}
+                    className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Zusätzliche Info zur Statusänderung…"
+                  />
                 </div>
               </div>
 
@@ -1617,6 +1679,89 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                 >
                   Löschen
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {activeTab === "emails" && (
+          <div className="mt-16 border-t border-white/10 pt-12">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Kunden-Mails
+                </h2>
+                <p className="text-gray-400">
+                  Schreibe eine Mail im Rohde-Audio-Design an einen Kunden.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-(--surface-2) p-8 shadow-lg max-w-3xl">
+              {(mailError || mailMessage) && (
+                <div
+                  className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
+                    mailError
+                      ? "border-red-500/30 bg-red-500/10 text-red-200"
+                      : "border-white/10 bg-white/5 text-gray-200"
+                  }`}
+                >
+                  {mailError ?? mailMessage}
+                </div>
+              )}
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Empfänger
+                  </label>
+                  <select
+                    value={mailUserId}
+                    onChange={(event) => setMailUserId(event.target.value)}
+                    className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="">Bitte auswählen</option>
+                    {users
+                      .filter((user) => user.role === "CUSTOMER")
+                      .map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Betreff
+                  </label>
+                  <input
+                    value={mailSubject}
+                    onChange={(event) => setMailSubject(event.target.value)}
+                    className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Betreff der Mail"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Nachricht
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={mailBody}
+                    onChange={(event) => setMailBody(event.target.value)}
+                    className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Deine Nachricht an den Kunden…"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSendMail}
+                    disabled={mailSending}
+                    className="btn-primary rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]"
+                    style={{ backgroundColor: theme.primary }}
+                  >
+                    {mailSending ? "Sende..." : "Mail senden"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

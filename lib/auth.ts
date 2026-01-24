@@ -31,7 +31,8 @@ export async function getCurrentUser() {
     .prepare(
       `
         SELECT s.token, s.expires_at as expiresAt, u.id, u.email, u.name, u.role,
-               u.password_hash as passwordHash, u.password_salt as passwordSalt
+               u.password_hash as passwordHash, u.password_salt as passwordSalt,
+               u.email_verified_at as emailVerifiedAt
         FROM sessions s
         JOIN users u ON u.id = s.user_id
         WHERE s.token = ?
@@ -46,6 +47,7 @@ export async function getCurrentUser() {
     role: string;
     passwordHash: string;
     passwordSalt: string;
+    emailVerifiedAt: string | null;
   } | undefined;
 
   if (!session) return null;
@@ -63,6 +65,7 @@ export async function getCurrentUser() {
     role: session.role,
     passwordHash: session.passwordHash,
     passwordSalt: session.passwordSalt,
+    emailVerifiedAt: session.emailVerifiedAt,
   };
 }
 

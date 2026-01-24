@@ -11,6 +11,9 @@ export default async function AccountPage() {
   if (user.role === "ADMIN") {
     redirect("/admin");
   }
+  if (!user.emailVerifiedAt) {
+    redirect("/verify");
+  }
 
   const profile = db
     .prepare(

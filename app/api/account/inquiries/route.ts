@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { sendInquiryEmails } from "@/lib/email";
 
 type InquiryRow = {
   id: string;
@@ -45,6 +46,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const contact = db
+    .prepare(
+      `
+        SELECT first_name as firstName,
+               last_name as lastName,
+               email,
+               phone
+        FROM users
+        WHERE id = ?
+      `
+    )
+    .get(user.id) as
+    | {
+        firstName: string | null;
+        lastName: string | null;
+        email: string;
+        phone: string | null;
+      }
+    | undefined;
+
   const body = await request.json();
   const eventType =
     typeof body?.eventType === "string" ? body.eventType.trim() : "";
@@ -63,15 +84,33 @@ export async function POST(request: Request) {
 
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
+  const contactName = contact
+    ? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim()
+    : "";
 
   db.prepare(
     `
-      INSERT INTO inquiries (id, user_id, event_type, participants, event_date, message, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO inquiries (
+        id,
+        user_id,
+        contact_name,
+        contact_email,
+        contact_phone,
+        event_type,
+        participants,
+        event_date,
+        message,
+        status,
+        created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).run(
     id,
     user.id,
+    contactName || null,
+    contact?.email ?? null,
+    contact?.phone ?? null,
     eventType || null,
     participants || null,
     eventDate || null,
@@ -95,6 +134,20 @@ export async function POST(request: Request) {
       `
     )
     .get(id) as InquiryRow | undefined;
+
+  try {
+    await sendInquiryEmails({
+      name: contactName || user.email,
+      email: contact?.email ?? user.email,
+      phone: contact?.phone ?? null,
+      eventType,
+      participants,
+      eventDate,
+      message,
+    });
+  } catch (error) {
+    console.error("Anfrage-E-Mail fehlgeschlagen:", error);
+  }
 
   return NextResponse.json(created, { status: 201 });
 }

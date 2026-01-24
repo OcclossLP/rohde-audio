@@ -32,7 +32,11 @@ export default function AdminLoginPage() {
     }
 
     if (payload?.role === "CUSTOMER") {
-      router.push("/account");
+      if (payload?.verified) {
+        router.push("/account");
+      } else {
+        router.push("/verify");
+      }
     } else {
       router.push("/admin");
     }

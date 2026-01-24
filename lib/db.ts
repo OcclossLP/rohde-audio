@@ -35,6 +35,10 @@ db.exec(`
     address_extra TEXT,
     postal_code TEXT,
     city TEXT,
+    email_verified_at TEXT,
+    verification_code TEXT,
+    verification_expires_at TEXT,
+    verification_sent_at TEXT,
     role TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
@@ -72,6 +76,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS inquiries (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
+    contact_name TEXT,
+    contact_email TEXT,
+    contact_phone TEXT,
     event_type TEXT,
     participants TEXT,
     event_date TEXT,
@@ -112,6 +119,20 @@ if (!userColumns.some((column) => column.name === "postal_code")) {
 if (!userColumns.some((column) => column.name === "city")) {
   db.exec("ALTER TABLE users ADD COLUMN city TEXT");
 }
+if (!userColumns.some((column) => column.name === "email_verified_at")) {
+  db.exec("ALTER TABLE users ADD COLUMN email_verified_at TEXT");
+  const now = new Date().toISOString();
+  db.prepare("UPDATE users SET email_verified_at = ? WHERE email_verified_at IS NULL").run(now);
+}
+if (!userColumns.some((column) => column.name === "verification_code")) {
+  db.exec("ALTER TABLE users ADD COLUMN verification_code TEXT");
+}
+if (!userColumns.some((column) => column.name === "verification_expires_at")) {
+  db.exec("ALTER TABLE users ADD COLUMN verification_expires_at TEXT");
+}
+if (!userColumns.some((column) => column.name === "verification_sent_at")) {
+  db.exec("ALTER TABLE users ADD COLUMN verification_sent_at TEXT");
+}
 
 const packageColumns = db
   .prepare("PRAGMA table_info(packages)")
@@ -129,4 +150,13 @@ const inquiryColumns = db
   .all() as Array<{ name: string }>;
 if (!inquiryColumns.some((column) => column.name === "status")) {
   db.exec("ALTER TABLE inquiries ADD COLUMN status TEXT NOT NULL DEFAULT 'open'");
+}
+if (!inquiryColumns.some((column) => column.name === "contact_name")) {
+  db.exec("ALTER TABLE inquiries ADD COLUMN contact_name TEXT");
+}
+if (!inquiryColumns.some((column) => column.name === "contact_email")) {
+  db.exec("ALTER TABLE inquiries ADD COLUMN contact_email TEXT");
+}
+if (!inquiryColumns.some((column) => column.name === "contact_phone")) {
+  db.exec("ALTER TABLE inquiries ADD COLUMN contact_phone TEXT");
 }

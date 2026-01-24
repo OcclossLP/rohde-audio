@@ -13,19 +13,24 @@ import { getPackages } from "@/lib/packages";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Rohde Audio – Professionelle Musikanlagen & Eventtechnik",
+  title: "Rohde Audio – Musikanlagen & Eventtechnik",
   description:
     "Rohde Audio liefert hochwertige Musikanlagen, PA-Systeme und Rundum-Service für unvergessliche Feiern in Warburg und Umgebung.",
   keywords: [
     "Rohde Audio",
-    "Musikanlagen Vermietung",
+    "Musikanlage mieten",
     "PA Systeme mieten",
     "Eventtechnik Warburg",
     "Sound & Musik Service",
     "Party Beschallung",
+    "Lautsprecher Verleih",
+    "Pa Anlage mieten",
+    "Veranstaltungstechnik",
+    "Veranstaltungstechnik Warburg",
+
   ],
   openGraph: {
-    title: "Rohde Audio – Professionelle Musikanlagen & Eventtechnik",
+    title: "Rohde Audio – Musikanlagen & Eventtechnik",
     description:
       "Hochwertige Musikanlagen, Beratung und Hol- & Bringservice für deine Feier – direkt von Rohde Audio.",
     url: "https://www.rohde-audio.de",
@@ -168,7 +173,7 @@ export default async function Home() {
             {
               icon: Speaker,
               title: "Satter Sound",
-              text: "Moderne Lautsprecher mit klarem Klang und kräftigem Bass – kein Billig-Equipment.",
+              text: "Moderne Lautsprecher mit klarem Klang und kräftigem Bass.",
             },
             {
               icon: Truck,
@@ -235,6 +240,7 @@ export default async function Home() {
                     style={{ color: theme.primary }}
                   >
                     {salePrice}
+                    <sup className="ml-1 text-sm text-gray-400">*</sup>
                   </p>
                 </div>
               ) : (
@@ -243,11 +249,18 @@ export default async function Home() {
                   style={{ color: theme.primary }}
                 >
                   {price}
+                  <sup className="ml-1 text-sm text-gray-400">*</sup>
                 </p>
               )}
             </div>
           ))}
         </div>
+
+        <p className="mt-10 text-center text-xs text-gray-400">
+          <sup className="mr-1">*</sup>
+          Hinweis: Preise ab - abhängig von Mietdauer, Ort und gewünschtem Setup
+          (Lieferung / Aufbau optional).
+        </p>
       </section>
 
       {/* ================= ABLAUF ================= */}

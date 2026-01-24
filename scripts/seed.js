@@ -28,6 +28,10 @@ db.exec(`
     address_extra TEXT,
     postal_code TEXT,
     city TEXT,
+    email_verified_at TEXT,
+    verification_code TEXT,
+    verification_expires_at TEXT,
+    verification_sent_at TEXT,
     role TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
@@ -65,6 +69,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS inquiries (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
+    contact_name TEXT,
+    contact_email TEXT,
+    contact_phone TEXT,
     event_type TEXT,
     participants TEXT,
     event_date TEXT,
@@ -103,10 +110,10 @@ if (!adminExists) {
   const { hash, salt } = hashPassword(adminPassword);
   db.prepare(
     `
-      INSERT INTO users (id, email, name, role, password_hash, password_salt, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (id, email, name, role, password_hash, password_salt, email_verified_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
-  ).run(crypto.randomUUID(), adminEmail, adminName, "ADMIN", hash, salt, now, now);
+  ).run(crypto.randomUUID(), adminEmail, adminName, "ADMIN", hash, salt, now, now, now);
 }
 
 const packageCount = db.prepare("SELECT COUNT(*) as count FROM packages").get();
