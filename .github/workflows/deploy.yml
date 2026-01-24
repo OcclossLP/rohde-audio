@@ -28,7 +28,6 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build --pull \
-            --build-arg RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} \
             -t brohde04/rohde-audio:latest .
 
       # 4️⃣ Push Image to Docker Hub
@@ -48,6 +47,8 @@ jobs:
             # 1️⃣ .env Datei mit Secrets schreiben
             cat > .env <<EOF
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            FROM_EMAIL=${{ secrets.FROM_EMAIL }}
+            FOUNDER_EMAIL=${{ secrets.FOUNDER_EMAIL }}
             ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
             ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
             ADMIN_NAME=${{ secrets.ADMIN_NAME }}
