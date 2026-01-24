@@ -31,7 +31,7 @@ html[data-theme="light"] {
   --page-bg: #f6f2ee;
   --page-text: #252525;
   --page-button-text: #ffffff;
-  --page-muted: #5c5f66;
+  --page-muted: #3f434a;
   --surface: #ffffff;
   --surface-2: #f0e9e3;
   --surface-3: #e8dfd7;
@@ -109,6 +109,30 @@ html[data-theme="light"] .text-gray-200 {
 html[data-theme="light"] .text-gray-300,
 html[data-theme="light"] .text-gray-400 {
   color: var(--page-muted);
+}
+
+html[data-theme="light"] .text-blue-200 {
+  color: #1d4ed8;
+}
+
+html[data-theme="light"] .text-purple-200 {
+  color: #7e22ce;
+}
+
+html[data-theme="light"] .text-amber-200 {
+  color: #b45309;
+}
+
+html[data-theme="light"] .text-teal-200 {
+  color: #0f766e;
+}
+
+html[data-theme="light"] .text-emerald-200 {
+  color: #047857;
+}
+
+html[data-theme="light"] .text-red-200 {
+  color: #b91c1c;
 }
 
 html[data-theme="light"] .border-white\/10 {
