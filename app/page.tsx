@@ -75,7 +75,7 @@ export default async function Home() {
     : [
         {
           id: "fallback-1",
-          title: "Small Party",
+          title: "Paket S",
           description: "Ideal für Geburtstage & kleine Feiern.",
           price: "ab 49 €",
           salePrice: null,
@@ -83,17 +83,17 @@ export default async function Home() {
         },
         {
           id: "fallback-2",
-          title: "Birthday Special",
+          title: "Paket M",
           description: "Mehr Leistung & Bass für größere Partys.",
-          price: "ab 89 €",
+          price: "ab 75 €",
           salePrice: null,
           highlight: true,
         },
         {
           id: "fallback-3",
-          title: "Event Pro",
+          title: "Paket L",
           description: "Maximaler Sound für große Events.",
-          price: "ab 149 €",
+          price: "ab 119 €",
           salePrice: null,
           highlight: false,
         },

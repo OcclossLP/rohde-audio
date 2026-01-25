@@ -10,10 +10,7 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
-    const system: Theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-    const initial = stored || system;
+    const initial = stored || "dark";
     setTheme(initial);
     document.documentElement.dataset.theme = initial;
     setMounted(true);
@@ -33,7 +30,7 @@ export default function ThemeToggle() {
   if (!mounted) {
     return (
       <button
-        className="h-9 w-16 rounded-full border border-white/15 bg-white/5"
+        className="theme-toggle theme-toggle--placeholder"
         aria-label="Theme umschalten"
         type="button"
       />
@@ -45,6 +42,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       className="theme-toggle"
       aria-label="Theme umschalten"
+      aria-pressed={theme === "dark"}
       type="button"
       data-theme={theme}
     >

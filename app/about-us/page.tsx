@@ -14,7 +14,7 @@ export default function About() {
       image: "https://images.unsplash.com/photo-1516873240891-4bf014598ab4?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Stockbild: Porträt / Person
     },
     {
-      year: "2015",
+      year: "2020",
       title: "Vinyl & Tontechnik",
       text: "Beginn meiner Auseinandersetzung mit professioneller Tontechnik und Schallplatten-Sammlung.",
       icon: Star,
@@ -62,16 +62,6 @@ export default function About() {
           <p className="text-xl md:text-2xl max-w-3xl mx-auto text-gray-300 mb-12">
             Leidenschaftlicher Sound, perfekte Technik und Service, der dich entlastet – alles für unvergessliche Feiern.
           </p>
-
-          <div className="flex justify-center gap-6 flex-wrap">
-            <a
-              href="#pakete"
-              className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
-              style={{ backgroundColor: theme.primary }}
-            >
-              Mehr erfahren
-            </a>
-          </div>
 
           {/* TRUST BADGES
           <div className="mt-16 flex justify-center gap-10 text-sm text-gray-300 flex-wrap">

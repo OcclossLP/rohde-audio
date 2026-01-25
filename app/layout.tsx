@@ -28,7 +28,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="de" data-theme="light" suppressHydrationWarning>
+    <html lang="de" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="description" content="Deine Website-Beschreibung" />
@@ -38,10 +38,7 @@ export default function RootLayout({
               (() => {
                 try {
                   const stored = localStorage.getItem("theme");
-                  const system = window.matchMedia("(prefers-color-scheme: dark)").matches
-                    ? "dark"
-                    : "light";
-                  const theme = stored || system;
+                  const theme = stored || "dark";
                   document.documentElement.dataset.theme = theme;
                 } catch {}
               })();

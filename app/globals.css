@@ -200,12 +200,13 @@ main {
 
 .theme-toggle {
   position: relative;
-  width: 62px;
-  height: 34px;
+  width: 72px;
+  height: 36px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 10px 24px rgba(0, 0, 0, 0.25);
   transition: background-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -215,18 +216,18 @@ main {
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(120deg, rgba(168, 85, 247, 0.25), rgba(59, 130, 246, 0.15));
 }
 
 .theme-toggle__thumb {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 26px;
-  height: 26px;
+  top: 3px;
+  left: 3px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: var(--shadow);
+  background: radial-gradient(circle at 30% 30%, #ffffff, #e2e8f0);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
   transition: transform 560ms cubic-bezier(0.34, 1.56, 0.64, 1),
     background 420ms ease;
   will-change: transform;
@@ -236,7 +237,7 @@ main {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0.02em;
   opacity: 0.7;
   transition: opacity 420ms ease;
@@ -271,23 +272,23 @@ main {
 }
 
 .theme-toggle__icon--sun {
-  right: 10px;
+  right: 12px;
   color: #f59e0b;
 }
 
 .theme-toggle__icon--moon {
-  left: 10px;
+  left: 12px;
   color: #94a3b8;
 }
 
 .theme-toggle[data-theme="dark"] .theme-toggle__thumb {
   transform: translateX(0);
-  background: #f8fafc;
+  background: radial-gradient(circle at 30% 30%, #f8fafc, #cbd5f5);
 }
 
 .theme-toggle[data-theme="light"] .theme-toggle__thumb {
-  transform: translateX(28px);
-  background: #111827;
+  transform: translateX(36px);
+  background: radial-gradient(circle at 30% 30%, #0f172a, #1f2937);
 }
 
 .theme-toggle[data-theme="light"] .theme-toggle__icon--sun {
@@ -296,6 +297,11 @@ main {
 
 .theme-toggle[data-theme="dark"] .theme-toggle__icon--moon {
   opacity: 1;
+}
+
+.theme-toggle--placeholder {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .pulse-orb {
