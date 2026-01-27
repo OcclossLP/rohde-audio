@@ -432,16 +432,6 @@ export default function AccountClient({ profile }: { profile: Profile }) {
           </div>
         )}
 
-        {activeTab === "bookings" && (
-          <div className="rounded-3xl border border-white/10 bg-(--surface-2) p-10 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">
-              Buchungen
-            </h2>
-            <p className="text-gray-400">
-              Dieser Bereich ist in Vorbereitung.
-            </p>
-          </div>
-        )}
         {activeTab === "inquiries" && (
           <div className="space-y-8">
             <div className="rounded-3xl border border-white/10 bg-(--surface-2) p-10 shadow-xl">
