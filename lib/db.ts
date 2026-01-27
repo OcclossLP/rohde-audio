@@ -257,17 +257,6 @@ usersMissingNumbers.forEach(({ id, customerNumber }) => {
   db.prepare("UPDATE users SET customer_number = ? WHERE id = ?").run(number, id);
 });
 
-const inquiriesMissingNumbers = db
-  .prepare(
-    "SELECT id, order_number as orderNumber FROM inquiries"
-  )
-  .all() as Array<{ id: string; orderNumber: string | null }>;
-inquiriesMissingNumbers.forEach(({ id, orderNumber }) => {
-  if (orderNumber && isValidOrderNumber(orderNumber)) return;
-  const number = getNextSequence("inquiries", "order_number", orderPrefix, 6);
-  db.prepare("UPDATE inquiries SET order_number = ? WHERE id = ?").run(number, id);
-});
-
 const inquiryColumns = db
   .prepare("PRAGMA table_info(inquiries)")
   .all() as Array<{ name: string }>;
@@ -286,6 +275,17 @@ if (!inquiryColumns.some((column) => column.name === "contact_phone")) {
 if (!inquiryColumns.some((column) => column.name === "order_number")) {
   db.exec("ALTER TABLE inquiries ADD COLUMN order_number TEXT");
 }
+
+const inquiriesMissingNumbers = db
+  .prepare(
+    "SELECT id, order_number as orderNumber FROM inquiries"
+  )
+  .all() as Array<{ id: string; orderNumber: string | null }>;
+inquiriesMissingNumbers.forEach(({ id, orderNumber }) => {
+  if (orderNumber && isValidOrderNumber(orderNumber)) return;
+  const number = getNextSequence("inquiries", "order_number", orderPrefix, 6);
+  db.prepare("UPDATE inquiries SET order_number = ? WHERE id = ?").run(number, id);
+});
 
 const guestUser = db
   .prepare("SELECT id FROM users WHERE email = ?")
