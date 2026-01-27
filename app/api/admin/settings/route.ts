@@ -244,10 +244,7 @@ export async function POST(request: Request) {
       ON CONFLICT(key) DO UPDATE SET value = excluded.value
     `
   );
-  const transaction = db.transaction((items: Array<[string, string]>) => {
-    items.forEach(([key, value]) => statement.run(key, value));
-  });
-  transaction(updates);
+  updates.forEach(([key, value]) => statement.run(key, value));
 
   const settings = getSettings();
   return NextResponse.json({ success: true, settings });
