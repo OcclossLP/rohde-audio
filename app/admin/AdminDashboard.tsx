@@ -536,8 +536,9 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const resetSection = (keys: Array<keyof typeof settings>) => {
     setSettings((prev) => {
       const next = { ...prev };
-      keys.forEach((key) => {
-        next[key] = SETTINGS_DEFAULTS[key] as (typeof settings)[typeof key];
+      const defaults = SETTINGS_DEFAULTS as Record<string, (typeof settings)[keyof typeof settings]>;
+      (keys as string[]).forEach((key) => {
+        (next as Record<string, (typeof settings)[keyof typeof settings]>)[key] = defaults[key];
       });
       return next;
     });
