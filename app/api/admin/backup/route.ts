@@ -61,7 +61,8 @@ export async function GET() {
   zip.addFile("backup-meta.json", Buffer.from(JSON.stringify(meta, null, 2)));
 
   const buffer = zip.toBuffer();
-  return new NextResponse(buffer, {
+  const body = new Uint8Array(buffer);
+  return new NextResponse(body, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
