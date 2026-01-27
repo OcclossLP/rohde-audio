@@ -537,7 +537,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
     setSettings((prev) => {
       const next = { ...prev };
       keys.forEach((key) => {
-        next[key] = SETTINGS_DEFAULTS[key];
+        next[key] = SETTINGS_DEFAULTS[key] as (typeof settings)[typeof key];
       });
       return next;
     });
