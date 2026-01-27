@@ -3,10 +3,23 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { sendVerificationEmail } from "@/lib/email";
+import { requireCsrf } from "@/lib/csrf";
+import { getClientIp, rateLimit } from "@/lib/rateLimit";
 
 const COOLDOWN_SECONDS = 120;
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
+  const ip = getClientIp(request);
+  const limit = rateLimit(`resend:${ip}`, 4, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Zu viele Anfragen. Bitte später erneut versuchen." },
+      { status: 429 }
+    );
+  }
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

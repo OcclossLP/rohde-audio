@@ -175,6 +175,7 @@ export default function About() {
           href="/contact"
           className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105 hover:shadow-xl"
           style={{ backgroundColor: theme.primary }}
+          data-cta="cta_contact"
         >
           Jetzt anfragen
         </a>

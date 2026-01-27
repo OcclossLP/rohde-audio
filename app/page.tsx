@@ -9,6 +9,7 @@ import Wave from "react-wavify";
 import { theme } from "./components/Theme";
 import { Metadata } from "next";
 import { getPackages } from "@/lib/packages";
+import FaqSection from "./components/FaqSection";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,10 @@ export const metadata: Metadata = {
     "Pa Anlage mieten",
     "Veranstaltungstechnik",
     "Veranstaltungstechnik Warburg",
+    "Rohde Audiotechnik",
+    "Rohde veranstaltungstechnik",
+    "Rohde-It",
+    "Rohde-IT.com",
 
   ],
   openGraph: {
@@ -133,12 +138,14 @@ export default async function Home() {
               href="/contact"
               className="btn-primary px-12 py-5 rounded-full font-semibold text-white transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
+              data-cta="cta_contact"
             >
               Jetzt anfragen
             </a>
             <a
               href="/services"
               className="px-12 py-5 rounded-full font-semibold text-white border border-white/20 hover:bg-white/10 transition"
+              data-cta="cta_services"
             >
               Mehr erfahren
             </a>
@@ -300,10 +307,13 @@ export default async function Home() {
           href="/contact"
           className="btn-primary px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
           style={{ backgroundColor: theme.primary }}
+          data-cta="cta_contact"
         >
           Anfrage starten
         </a>
       </section>
+
+      <FaqSection />
     </main>
   );
 }

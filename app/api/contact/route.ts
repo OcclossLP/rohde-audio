@@ -3,9 +3,30 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { sendInquiryEmails } from "@/lib/email";
+import { requireCsrf } from "@/lib/csrf";
+import { getClientIp, rateLimit } from "@/lib/rateLimit";
+import {
+  getSettingNumber,
+  getSettingValue,
+  normalizeInquiryStatus,
+} from "@/lib/settings";
+import { generateCustomerNumber, generateOrderNumber } from "@/lib/ids";
 
 export async function POST(request: Request) {
   try {
+    if (!(await requireCsrf(request))) {
+      return NextResponse.json({ success: false, error: "Ungültige Anfrage." }, { status: 403 });
+    }
+    const ip = getClientIp(request);
+    const contactLimit = getSettingNumber("security_contact_limit", 6);
+    const contactWindowSeconds = getSettingNumber("security_contact_window_seconds", 60);
+    const limit = rateLimit(`contact:${ip}`, contactLimit, contactWindowSeconds * 1000);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { success: false, error: "Zu viele Anfragen. Bitte später erneut versuchen." },
+        { status: 429 }
+      );
+    }
     const body = await request.json();
     const firstName =
       typeof body?.firstName === "string" ? body.firstName.trim() : "";
@@ -31,30 +52,69 @@ export async function POST(request: Request) {
       );
     }
 
-    const guestEmail = "gast@rohde-audio.local";
-    const guestUser =
-      (db
-        .prepare("SELECT id FROM users WHERE email = ?")
-        .get(guestEmail) as { id: string } | undefined) ?? null;
+    const existingUser = db
+      .prepare(
+        `
+          SELECT id,
+                 customer_number as customerNumber,
+                 first_name as firstName,
+                 last_name as lastName,
+                 name,
+                 role,
+                 is_guest as isGuest,
+                 deleted_at as deletedAt
+          FROM users
+          WHERE email = ?
+        `
+      )
+      .get(email) as
+      | {
+          id: string;
+          customerNumber: string | null;
+          firstName: string | null;
+          lastName: string | null;
+          name: string | null;
+          role: string;
+          isGuest: number;
+          deletedAt: string | null;
+        }
+      | undefined;
 
-    let guestUserId = guestUser?.id;
+    let guestUserId = existingUser?.id ?? null;
+    let guestCustomerNumber = existingUser?.customerNumber ?? null;
+
     if (!guestUserId) {
       const id = crypto.randomUUID();
       const now = new Date().toISOString();
+      const customerNumber = generateCustomerNumber();
       const { passwordHash, passwordSalt } = hashPassword(
         crypto.randomBytes(32).toString("hex")
       );
       db.prepare(
         `
-          INSERT INTO users (id, email, name, first_name, last_name, role, password_hash, password_salt, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO users (
+            id,
+            email,
+            name,
+            first_name,
+            last_name,
+            customer_number,
+            role,
+            password_hash,
+            password_salt,
+            created_at,
+            updated_at,
+            is_guest
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
         `
       ).run(
         id,
-        guestEmail,
-        "Gast",
-        "Gast",
-        "",
+        email,
+        name || null,
+        firstName || null,
+        lastName || null,
+        customerNumber,
         "CUSTOMER",
         passwordHash,
         passwordSalt,
@@ -62,10 +122,34 @@ export async function POST(request: Request) {
         now
       );
       guestUserId = id;
+      guestCustomerNumber = customerNumber;
+    } else {
+      if (!guestCustomerNumber) {
+        const customerNumber = generateCustomerNumber();
+        db.prepare("UPDATE users SET customer_number = ? WHERE id = ?").run(
+          customerNumber,
+          guestUserId
+        );
+        guestCustomerNumber = customerNumber;
+      }
+      if (existingUser?.isGuest && name) {
+        db.prepare(
+          "UPDATE users SET name = ?, first_name = ?, last_name = ?, updated_at = ? WHERE id = ?"
+        ).run(
+          name || existingUser.name,
+          firstName || existingUser.firstName,
+          lastName || existingUser.lastName,
+          new Date().toISOString(),
+          guestUserId
+        );
+      }
     }
 
     const inquiryId = crypto.randomUUID();
+    const orderNumber = generateOrderNumber();
     const createdAt = new Date().toISOString();
+    const defaultStatus =
+      normalizeInquiryStatus(getSettingValue("inquiry_default_status")) || "open";
     db.prepare(
       `
         INSERT INTO inquiries (
@@ -78,10 +162,11 @@ export async function POST(request: Request) {
           participants,
           event_date,
           message,
+          order_number,
           status,
           created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
     ).run(
       inquiryId,
@@ -93,7 +178,8 @@ export async function POST(request: Request) {
       participants || null,
       date || null,
       message,
-      "open",
+      orderNumber,
+      defaultStatus,
       createdAt
     );
 
@@ -106,6 +192,8 @@ export async function POST(request: Request) {
         participants,
         eventDate: date,
         message,
+        orderNumber,
+        customerNumber: guestCustomerNumber,
       });
     } catch (error) {
       console.error("Anfrage-E-Mail fehlgeschlagen:", error);

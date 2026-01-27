@@ -3,13 +3,24 @@
 import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
+type Consent = "accepted" | "declined" | "necessary" | null;
+
+const getConsent = (): Consent => {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )cookie_consent=([^;]*)/);
+  return match ? (decodeURIComponent(match[1]) as Consent) : null;
+};
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
+    const consent = getConsent();
+    const stored =
+      consent && consent !== "declined"
+        ? (localStorage.getItem("theme") as Theme | null)
+        : null;
     const initial = stored || "dark";
     setTheme(initial);
     document.documentElement.dataset.theme = initial;
@@ -19,7 +30,12 @@ export default function ThemeToggle() {
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem("theme", next);
+    const consent = getConsent();
+    if (consent && consent !== "declined") {
+      localStorage.setItem("theme", next);
+    } else {
+      localStorage.removeItem("theme");
+    }
     document.documentElement.classList.add("theme-transition");
     document.documentElement.dataset.theme = next;
     window.setTimeout(() => {

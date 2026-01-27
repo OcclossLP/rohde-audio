@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme } from "@/app/components/Theme";
+import { csrfFetch } from "@/app/components/csrfFetch";
 import { Trash2 } from "lucide-react";
 
 type Profile = {
@@ -10,6 +11,7 @@ type Profile = {
   lastName: string | null;
   email: string;
   phone: string | null;
+  customerNumber: string | null;
   street: string | null;
   houseNumber: string | null;
   addressExtra: string | null;
@@ -19,6 +21,7 @@ type Profile = {
 
 type Inquiry = {
   id: string;
+  orderNumber: string | null;
   eventType: string | null;
   participants: string | null;
   eventDate: string | null;
@@ -29,7 +32,7 @@ type Inquiry = {
 
 export default function AccountClient({ profile }: { profile: Profile }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"profile" | "inquiries" | "bookings">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "inquiries">("profile");
   const [firstName, setFirstName] = useState(profile.firstName ?? "");
   const [lastName, setLastName] = useState(profile.lastName ?? "");
   const [email, setEmail] = useState(profile.email ?? "");
@@ -79,7 +82,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
     }
 
     setSaving(true);
-    const response = await fetch("/api/account", {
+    const response = await csrfFetch("/api/account", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -109,7 +112,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
   };
 
   const handleDeleteAccount = async () => {
-    const response = await fetch("/api/account", {
+    const response = await csrfFetch("/api/account", {
       method: "DELETE",
     });
 
@@ -148,7 +151,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
       return;
     }
 
-    const response = await fetch("/api/account/inquiries", {
+    const response = await csrfFetch("/api/account/inquiries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -172,7 +175,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
 
   const handleDeleteInquiry = async (id: string) => {
     setDeletingInquiryId(id);
-    const response = await fetch(`/api/account/inquiries/${id}`, {
+    const response = await csrfFetch(`/api/account/inquiries/${id}`, {
       method: "DELETE",
     });
     setDeletingInquiryId(null);
@@ -196,19 +199,24 @@ export default function AccountClient({ profile }: { profile: Profile }) {
           <p className="text-gray-400">
             Verwalte deine Kontaktdaten und Sicherheitseinstellungen.
           </p>
+          <div className="mt-4 inline-flex items-center gap-3 rounded-full border border-white/10 bg-(--surface-2) px-4 py-2 text-xs text-gray-300">
+            <span className="text-gray-500">Kundennummer:</span>
+            <span className="font-semibold text-white">
+              {profile.customerNumber ?? "—"}
+            </span>
+          </div>
         </div>
 
         <div className="mb-8 flex flex-wrap gap-3 text-sm">
           {[
-            { id: "profile", label: "Profil" },
             { id: "inquiries", label: "Anfragen" },
-            { id: "bookings", label: "Buchungen" },
+            { id: "profile", label: "Profil" },
           ].map(({ id, label }) => (
             <button
               key={id}
               type="button"
               onClick={() => {
-                const next = id as "profile" | "inquiries" | "bookings";
+                const next = id as "profile" | "inquiries";
                 setActiveTab(next);
                 if (next === "inquiries" && !inquiries.length) {
                   loadInquiries();
@@ -542,6 +550,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
                     <thead className="border-b border-white/10 text-gray-400">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold">Erstellt</th>
+                        <th className="px-4 py-3 text-left font-semibold">Auftragsnr.</th>
                         <th className="px-4 py-3 text-left font-semibold">Event</th>
                         <th className="px-4 py-3 text-left font-semibold">Teilnehmer</th>
                         <th className="px-4 py-3 text-left font-semibold">Datum</th>
@@ -559,6 +568,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
                           <td className="px-4 py-3">
                             {new Date(inquiry.createdAt).toLocaleString("de-DE")}
                           </td>
+                          <td className="px-4 py-3">{inquiry.orderNumber ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.eventType ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.participants ?? "—"}</td>
                           <td className="px-4 py-3">{inquiry.eventDate ?? "—"}</td>

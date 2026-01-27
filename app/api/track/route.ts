@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireCsrf } from "@/lib/csrf";
+import { getSettingBool } from "@/lib/settings";
 
 const toDbTimestamp = (date: Date) => {
   const pad = (value: number) => String(value).padStart(2, "0");
@@ -14,6 +16,12 @@ const toDbTimestamp = (date: Date) => {
 };
 
 export async function POST(request: Request) {
+  if (!getSettingBool("analytics_enabled", true)) {
+    return NextResponse.json({ ok: true });
+  }
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ ok: false }, { status: 403 });
+  }
   let path = "";
   try {
     const body = await request.json();

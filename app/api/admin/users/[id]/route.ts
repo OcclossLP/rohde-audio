@@ -3,11 +3,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { requireCsrf } from "@/lib/csrf";
+import { isValidCustomerNumber, reserveCustomerNumber, reserveOrderNumber } from "@/lib/ids";
 
 type UserRow = {
   id: string;
   email: string;
   phone: string | null;
+  customerNumber: string | null;
   name: string | null;
   notes: string | null;
   firstName: string | null;
@@ -28,6 +31,9 @@ type RouteContext = {
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -47,6 +53,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         ? normalizePhone(phoneInput)
         : null
       : undefined;
+  const customerNumber =
+    typeof body?.customerNumber === "string" ? body.customerNumber.trim() : undefined;
   const notes =
     typeof body?.notes === "string" ? body.notes.trim() : undefined;
   const street =
@@ -67,6 +75,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     lastName?: string | null;
     role?: "ADMIN" | "CUSTOMER";
     phone?: string | null;
+    customerNumber?: string | null;
     notes?: string | null;
     street?: string | null;
     houseNumber?: string | null;
@@ -77,6 +86,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     passwordSalt?: string;
   } = {};
 
+  const currentUser = db
+    .prepare("SELECT customer_number as customerNumber FROM users WHERE id = ?")
+    .get(id) as { customerNumber: string | null } | undefined;
+
   if (typeof firstName !== "undefined") data.firstName = firstName || null;
   if (typeof lastName !== "undefined") data.lastName = lastName || null;
   if (typeof firstName !== "undefined" || typeof lastName !== "undefined") {
@@ -86,6 +99,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
   if (typeof role !== "undefined") data.role = role;
   if (typeof phone !== "undefined") data.phone = phone;
+  if (typeof customerNumber !== "undefined") data.customerNumber = customerNumber || null;
   if (typeof notes !== "undefined") data.notes = notes || null;
   if (typeof street !== "undefined") data.street = street || null;
   if (typeof houseNumber !== "undefined") data.houseNumber = houseNumber || null;
@@ -120,6 +134,36 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (typeof data.phone !== "undefined") {
     fields.push("phone = ?");
     values.push(data.phone);
+  }
+  if (typeof data.customerNumber !== "undefined") {
+    if (data.customerNumber && !isValidCustomerNumber(data.customerNumber)) {
+      return NextResponse.json(
+        { error: "Kundennummer muss 5-stellig sein und ab 10100 beginnen." },
+        { status: 400 }
+      );
+    }
+    if (data.customerNumber) {
+      const existing = db
+        .prepare("SELECT id FROM users WHERE customer_number = ? AND id <> ?")
+        .get(data.customerNumber, id) as { id: string } | undefined;
+      if (existing) {
+        return NextResponse.json(
+          { error: "Diese Kundennummer ist bereits vergeben." },
+          { status: 409 }
+        );
+      }
+      const reserved = db
+        .prepare("SELECT customer_number FROM reserved_customer_numbers WHERE customer_number = ?")
+        .get(data.customerNumber) as { customer_number: string } | undefined;
+      if (reserved) {
+        return NextResponse.json(
+          { error: "Diese Kundennummer ist bereits vergeben." },
+          { status: 409 }
+        );
+      }
+    }
+    fields.push("customer_number = ?");
+    values.push(data.customerNumber);
   }
   if (typeof data.notes !== "undefined") {
     fields.push("notes = ?");
@@ -162,12 +206,21 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   db.prepare(`UPDATE users SET ${fields.join(", ")} WHERE id = ?`).run(...values);
 
+  if (
+    typeof data.customerNumber !== "undefined" &&
+    currentUser?.customerNumber &&
+    currentUser.customerNumber !== data.customerNumber
+  ) {
+    reserveCustomerNumber(currentUser.customerNumber);
+  }
+
   const updated = db
     .prepare(
       `
         SELECT id,
                email,
                phone,
+               customer_number as customerNumber,
                name,
                notes,
                first_name as firstName,
@@ -193,12 +246,44 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await context.params;
-  db.prepare("DELETE FROM users WHERE id = ?").run(id);
-  return NextResponse.json({ success: true });
+  const hardDelete = request.nextUrl.searchParams.get("hard") === "1";
+
+  const existing = db
+    .prepare(
+      "SELECT customer_number as customerNumber FROM users WHERE id = ?"
+    )
+    .get(id) as { customerNumber: string | null } | undefined;
+
+  if (!existing) {
+    return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 404 });
+  }
+
+  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(id);
+
+  if (hardDelete) {
+    const inquiryNumbers = db
+      .prepare("SELECT order_number as orderNumber FROM inquiries WHERE user_id = ?")
+      .all(id) as Array<{ orderNumber: string | null }>;
+    inquiryNumbers.forEach((entry) => reserveOrderNumber(entry.orderNumber));
+    reserveCustomerNumber(existing.customerNumber);
+    db.prepare("DELETE FROM inquiries WHERE user_id = ?").run(id);
+    db.prepare("DELETE FROM users WHERE id = ?").run(id);
+    return NextResponse.json({ success: true, hardDeleted: true });
+  }
+
+  db.prepare("UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?").run(
+    new Date().toISOString(),
+    new Date().toISOString(),
+    id
+  );
+  return NextResponse.json({ success: true, hardDeleted: false });
 }

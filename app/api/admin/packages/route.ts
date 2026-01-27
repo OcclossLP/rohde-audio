@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { requireCsrf } from "@/lib/csrf";
 
 type PackageRow = {
   id: string;
@@ -33,6 +34,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

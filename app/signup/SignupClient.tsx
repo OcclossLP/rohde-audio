@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { theme } from "@/app/components/Theme";
+import { csrfFetch } from "@/app/components/csrfFetch";
 
 type InquiryDraft = {
   eventType: string;
@@ -75,7 +76,7 @@ export default function SignupClient() {
         ? queryInquiry
         : null;
 
-    const response = await fetch("/api/auth/signup", {
+    const response = await csrfFetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

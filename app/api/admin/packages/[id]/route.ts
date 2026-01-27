@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { requireCsrf } from "@/lib/csrf";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -14,6 +15,9 @@ const getPackageId = async (request: NextRequest, context: RouteContext) => {
 };
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const id = await getPackageId(request, context);
   const user = await requireAdmin();
   if (!user) {
@@ -102,6 +106,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await requireAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { theme } from "@/app/components/Theme";
+import { csrfFetch } from "@/app/components/csrfFetch";
 
 type VerifyClientProps = {
   initialCooldown: number;
@@ -35,7 +36,7 @@ export default function VerifyClient({ initialCooldown, email }: VerifyClientPro
       return;
     }
     setLoading(true);
-    const response = await fetch("/api/auth/verify", {
+    const response = await csrfFetch("/api/auth/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
@@ -57,7 +58,7 @@ export default function VerifyClient({ initialCooldown, email }: VerifyClientPro
     setResending(true);
     setError(null);
     setMessage(null);
-    const response = await fetch("/api/auth/resend-code", { method: "POST" });
+    const response = await csrfFetch("/api/auth/resend-code", { method: "POST" });
     setResending(false);
 
     const payload = await response.json().catch(() => null);

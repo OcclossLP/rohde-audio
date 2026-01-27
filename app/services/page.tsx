@@ -3,6 +3,7 @@
 import { Speaker, Truck, CalendarCheck } from "lucide-react";
 import Wave from "react-wavify";
 import { theme } from "../components/Theme";
+import FaqSection from "../components/FaqSection";
 import { useEffect, useState } from "react";
 
 export default function Leistungen() {
@@ -218,10 +219,13 @@ export default function Leistungen() {
           href="/contact"
           className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105 hover:shadow-xl"
           style={{ backgroundColor: theme.primary }}
+          data-cta="cta_contact"
         >
           Jetzt anfragen
         </a>
       </section>
+
+      <FaqSection />
     </main>
   );
 }

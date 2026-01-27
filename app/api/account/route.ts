@@ -3,10 +3,14 @@ import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { getCurrentUser, SESSION_COOKIE } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { requireCsrf } from "@/lib/csrf";
 
 const normalizePhone = (value: string) => value.replace(/\s+/g, "");
 
 export async function PATCH(request: Request) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -140,14 +144,22 @@ export async function PATCH(request: Request) {
   );
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const now = new Date().toISOString();
   db.prepare("DELETE FROM sessions WHERE user_id = ?").run(user.id);
-  db.prepare("DELETE FROM users WHERE id = ?").run(user.id);
+  db.prepare("UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?").run(
+    now,
+    now,
+    user.id
+  );
 
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, "", {

@@ -147,6 +147,77 @@ const buildMonthlyBuckets = (now: Date) => {
   return buckets;
 };
 
+const buildDailyEventBuckets = (now: Date, days: number, name: string) => {
+  const end = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds()
+  ));
+  const start = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - (days - 1),
+    0,
+    0,
+    0
+  ));
+
+  const rows = db
+    .prepare(
+      `
+        SELECT strftime('%Y-%m-%d', created_at) as bucket, COUNT(*) as count
+        FROM events
+        WHERE created_at >= ? AND created_at <= ? AND name = ?
+        GROUP BY bucket
+      `
+    )
+    .all(toDbTimestamp(start), toDbTimestamp(end), name) as Array<{ bucket: string; count: number }>;
+
+  const map = new Map<string, number>();
+  rows.forEach((row) => map.set(row.bucket, row.count));
+  const buckets: Bucket[] = [];
+
+  for (let i = 0; i < days; i += 1) {
+    const cursor = new Date(start);
+    cursor.setUTCDate(start.getUTCDate() + i);
+    const key = formatDayKey(cursor);
+    buckets.push({
+      label: formatDayLabel(cursor),
+      count: map.get(key) ?? 0,
+    });
+  }
+
+  return buckets;
+};
+
+const countEvents = (name: string, start?: string) => {
+  if (start) {
+    const row = db
+      .prepare(
+        `
+          SELECT COUNT(*) as count
+          FROM events
+          WHERE name = ? AND created_at >= ?
+        `
+      )
+      .get(name, start) as { count: number };
+    return row?.count ?? 0;
+  }
+  const row = db
+    .prepare(
+      `
+        SELECT COUNT(*) as count
+        FROM events
+        WHERE name = ?
+      `
+    )
+    .get(name) as { count: number };
+  return row?.count ?? 0;
+};
+
 export async function GET() {
   const user = await requireAdmin();
   if (!user) {
@@ -158,6 +229,13 @@ export async function GET() {
   const last7Days = buildDailyBuckets(now, 7);
   const last30Days = buildDailyBuckets(now, 30);
   const last365Days = buildMonthlyBuckets(now);
+  const ctaLast7Buckets = buildDailyEventBuckets(now, 7, "cta_contact");
+  const last7Start = toDbTimestamp(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6, 0, 0, 0))
+  );
+  const last30Start = toDbTimestamp(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29, 0, 0, 0))
+  );
 
   const total = (buckets: Bucket[]) =>
     buckets.reduce((sum, bucket) => sum + bucket.count, 0);
@@ -167,5 +245,12 @@ export async function GET() {
     last7Days: { buckets: last7Days, total: total(last7Days) },
     last30Days: { buckets: last30Days, total: total(last30Days) },
     last365Days: { buckets: last365Days, total: total(last365Days) },
+    events: {
+      ctaTotal: countEvents("cta_contact"),
+      ctaServicesTotal: countEvents("cta_services"),
+      ctaLast7Days: countEvents("cta_contact", last7Start),
+      ctaLast30Days: countEvents("cta_contact", last30Start),
+      ctaLast7Buckets,
+    },
   });
 }

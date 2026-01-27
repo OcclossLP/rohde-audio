@@ -22,6 +22,7 @@ export default async function AccountPage() {
                last_name as lastName,
                email,
                phone,
+               customer_number as customerNumber,
                street,
                house_number as houseNumber,
                address_extra as addressExtra,
@@ -36,6 +37,7 @@ export default async function AccountPage() {
     lastName: string | null;
     email: string;
     phone: string | null;
+    customerNumber: string | null;
     street: string | null;
     houseNumber: string | null;
     addressExtra: string | null;

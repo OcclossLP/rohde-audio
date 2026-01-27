@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { sendInquiryEmails } from "@/lib/email";
+import { requireCsrf } from "@/lib/csrf";
+import { getSettingValue, normalizeInquiryStatus } from "@/lib/settings";
+import { generateOrderNumber } from "@/lib/ids";
 
 type InquiryRow = {
   id: string;
+  orderNumber: string | null;
   eventType: string | null;
   participants: string | null;
   eventDate: string | null;
@@ -24,6 +28,7 @@ export async function GET() {
     .prepare(
       `
         SELECT id,
+               order_number as orderNumber,
                event_type as eventType,
                participants,
                event_date as eventDate,
@@ -41,6 +46,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,7 +60,8 @@ export async function POST(request: Request) {
         SELECT first_name as firstName,
                last_name as lastName,
                email,
-               phone
+               phone,
+               customer_number as customerNumber
         FROM users
         WHERE id = ?
       `
@@ -63,6 +72,7 @@ export async function POST(request: Request) {
         lastName: string | null;
         email: string;
         phone: string | null;
+        customerNumber: string | null;
       }
     | undefined;
 
@@ -83,7 +93,10 @@ export async function POST(request: Request) {
   }
 
   const id = crypto.randomUUID();
+  const orderNumber = generateOrderNumber();
   const createdAt = new Date().toISOString();
+  const defaultStatus =
+    normalizeInquiryStatus(getSettingValue("inquiry_default_status")) || "open";
   const contactName = contact
     ? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim()
     : "";
@@ -100,10 +113,11 @@ export async function POST(request: Request) {
         participants,
         event_date,
         message,
+        order_number,
         status,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
   ).run(
     id,
@@ -115,7 +129,8 @@ export async function POST(request: Request) {
     participants || null,
     eventDate || null,
     message,
-    "open",
+    orderNumber,
+    defaultStatus,
     createdAt
   );
 
@@ -123,6 +138,7 @@ export async function POST(request: Request) {
     .prepare(
       `
         SELECT id,
+               order_number as orderNumber,
                event_type as eventType,
                participants,
                event_date as eventDate,
@@ -144,6 +160,8 @@ export async function POST(request: Request) {
       participants,
       eventDate,
       message,
+      orderNumber,
+      customerNumber: contact?.customerNumber ?? null,
     });
   } catch (error) {
     console.error("Anfrage-E-Mail fehlgeschlagen:", error);

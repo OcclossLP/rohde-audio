@@ -2,12 +2,17 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { requireCsrf } from "@/lib/csrf";
+import { reserveOrderNumber } from "@/lib/ids";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function DELETE(_request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  if (!(await requireCsrf(request))) {
+    return NextResponse.json({ error: "Ungültige Anfrage." }, { status: 403 });
+  }
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,12 +22,12 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   const inquiry = db
     .prepare(
       `
-        SELECT id, status
+        SELECT id, status, order_number as orderNumber
         FROM inquiries
         WHERE id = ? AND user_id = ?
       `
     )
-    .get(id, user.id) as { id: string; status: string } | undefined;
+    .get(id, user.id) as { id: string; status: string; orderNumber: string | null } | undefined;
 
   if (!inquiry) {
     return NextResponse.json({ error: "Anfrage nicht gefunden." }, { status: 404 });
@@ -32,6 +37,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Nur offene Anfragen können gelöscht werden." }, { status: 400 });
   }
 
+  reserveOrderNumber(inquiry.orderNumber);
   db.prepare("DELETE FROM inquiries WHERE id = ?").run(id);
   return NextResponse.json({ success: true });
 }

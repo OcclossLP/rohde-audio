@@ -3,6 +3,8 @@
 import { theme } from "../components/Theme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { csrfFetch } from "@/app/components/csrfFetch";
+import FaqSection from "@/app/components/FaqSection";
 import { Calendar, User, Mail, Phone, Users, UserPlus, Send } from "lucide-react";
 import Wave from "react-wavify";
 
@@ -40,7 +42,7 @@ export default function Contact() {
   const submitAsGuest = async (payload: typeof form) => {
     setSubmitError(null);
     setSubmitting(true);
-    const response = await fetch("/api/contact", {
+    const response = await csrfFetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -109,6 +111,7 @@ export default function Contact() {
               href="#form"
               className="btn-primary inline-block px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
+              data-cta="cta_contact"
             >
               Mehr erfahren
             </a>
@@ -343,6 +346,8 @@ export default function Contact() {
             </p>
           </div>
         </div>
+
+        <FaqSection />
       </section>
     </main>
   );
