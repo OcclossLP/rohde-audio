@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
+import { ROHDE_AUDIO_INVOICE_URL } from "@/lib/externalLinks";
+import { getPortalHref } from "@/lib/subdomains";
+import InvoiceNinjaAdmin from "./InvoiceNinjaAdmin";
 
 type PackageCard = {
   id: string;
@@ -125,7 +127,6 @@ const SETTINGS_DEFAULTS = {
 };
 
 export default function AdminDashboard({ userName }: AdminDashboardProps) {
-  const router = useRouter();
   const [packages, setPackages] = useState<PackageCard[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,7 +173,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [userMessage, setUserMessage] = useState<string | null>(null);
   const [confirmUser, setConfirmUser] = useState<AdminUser | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "views" | "packages" | "users" | "usersList" | "inquiries" | "emails" | "faqs" | "settings"
+    "views" | "packages" | "users" | "usersList" | "inquiries" | "emails" | "faqs" | "settings" | "keycloak-users" | "invoice-ninja"
   >("views");
   const [newUser, setNewUser] = useState<{
     email: string;
@@ -231,7 +232,6 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [mailBody, setMailBody] = useState("");
   const [mailOrderNumber, setMailOrderNumber] = useState("");
   const [mailCustomerNumber, setMailCustomerNumber] = useState("");
-  const [mailOrderOptions, setMailOrderOptions] = useState<string[]>([]);
   const [mailMessage, setMailMessage] = useState<string | null>(null);
   const [mailError, setMailError] = useState<string | null>(null);
   const [mailSending, setMailSending] = useState(false);
@@ -246,6 +246,18 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
   const [faqError, setFaqError] = useState<string | null>(null);
   const [inquirySearch, setInquirySearch] = useState("");
   const [faqLimit, setFaqLimit] = useState(6);
+
+  const mailOrderOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          inquiries
+            .filter((inquiry) => inquiry.userId === mailUserId && inquiry.orderNumber)
+            .map((inquiry) => inquiry.orderNumber as string)
+        )
+      ).sort(),
+    [inquiries, mailUserId]
+  );
 
   const loadPackages = async () => {
     setLoading(true);
@@ -797,39 +809,15 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
     });
 
   useEffect(() => {
-    loadPackages();
-    loadUsers();
-    loadAnalytics();
-    loadInquiries();
-  }, []);
+    const timer = window.setTimeout(() => {
+      void loadPackages();
+      void loadUsers();
+      void loadAnalytics();
+      void loadInquiries();
+    }, 0);
 
-  useEffect(() => {
-    if (!mailUserId) {
-      setMailCustomerNumber("");
-      setMailOrderOptions([]);
-      if (!mailToEmail) {
-        setMailOrderNumber("");
-      }
-      return;
-    }
-    const selectedUser = users.find((user) => user.id === mailUserId);
-    setMailCustomerNumber(selectedUser?.customerNumber ?? "");
-    const options = Array.from(
-      new Set(
-        inquiries
-          .filter((inquiry) => inquiry.userId === mailUserId && inquiry.orderNumber)
-          .map((inquiry) => inquiry.orderNumber as string)
-      )
-    ).sort();
-    setMailOrderOptions(options);
-    if (options.length > 0) {
-      if (!mailOrderNumber || !options.includes(mailOrderNumber)) {
-        setMailOrderNumber(options[0]);
-      }
-    } else {
-      setMailOrderNumber("");
-    }
-  }, [mailUserId, mailToEmail, mailOrderNumber, inquiries, users]);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const updatePackage = (id: string, patch: Partial<PackageCard>) => {
     setPackages((prev) =>
@@ -904,7 +892,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
 
   const handleLogout = async () => {
     await csrfFetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.push("/admin/login");
+    window.location.assign(getPortalHref("admin", "/login"));
   };
 
   const handleCreateUser = async () => {
@@ -919,6 +907,7 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newUser),
     });
+    const payload = await response.json().catch(() => null);
 
     if (response.ok) {
       setNewUser({
@@ -931,9 +920,12 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
         password: "",
       });
       await loadUsers();
-      setUserMessage("Benutzer erstellt.");
+      setUserMessage(
+        payload?.warning
+          ? `Benutzer erstellt. ${payload.warning}`
+          : "Benutzer erstellt."
+      );
     } else {
-      const payload = await response.json().catch(() => null);
       setUserMessage(payload?.error ?? "Benutzer konnte nicht erstellt werden.");
     }
   };
@@ -946,11 +938,15 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    const payload = await response.json().catch(() => null);
     if (response.ok) {
       await loadUsers();
-      setUserMessage("Benutzer aktualisiert.");
+      setUserMessage(
+        payload?.warning
+          ? `Benutzer aktualisiert. ${payload.warning}`
+          : "Benutzer aktualisiert."
+      );
     } else {
-      const payload = await response.json().catch(() => null);
       setUserMessage(payload?.error ?? "Update fehlgeschlagen.");
     }
   };
@@ -1128,6 +1124,14 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                 Paket anlegen
               </button>
             )}
+            <a
+              href={ROHDE_AUDIO_INVOICE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-white border border-emerald-400/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition"
+            >
+              Buchhaltung
+            </a>
             <button
               onClick={handleLogout}
               className="rounded-full px-5 py-2 text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition"
@@ -1147,6 +1151,8 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
             { id: "emails", label: "Mails" },
             { id: "faqs", label: "FAQ" },
             { id: "settings", label: "Settings" },
+            { id: "keycloak-users", label: "Keycloak Users" },
+            { id: "invoice-ninja", label: "Invoice Ninja" },
           ].map(({ id, label }) => (
             <button
               key={id}
@@ -2630,10 +2636,31 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                     <select
                       value={mailUserId}
                       onChange={(event) => {
-                        setMailUserId(event.target.value);
-                        if (event.target.value) {
-                          setMailToEmail("");
+                        const nextUserId = event.target.value;
+                        setMailUserId(nextUserId);
+
+                        if (!nextUserId) {
+                          setMailCustomerNumber("");
+                          setMailOrderNumber("");
+                          return;
                         }
+
+                        setMailToEmail("");
+                        const selectedUser = users.find((user) => user.id === nextUserId);
+                        const options = Array.from(
+                          new Set(
+                            inquiries
+                              .filter(
+                                (inquiry) => inquiry.userId === nextUserId && inquiry.orderNumber
+                              )
+                              .map((inquiry) => inquiry.orderNumber as string)
+                          )
+                        ).sort();
+
+                        setMailCustomerNumber(selectedUser?.customerNumber ?? "");
+                        setMailOrderNumber((prev) =>
+                          prev && options.includes(prev) ? prev : (options[0] ?? "")
+                        );
                       }}
                       className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     >
@@ -2654,7 +2681,6 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                           setMailUserId("");
                           setMailCustomerNumber("");
                           setMailOrderNumber("");
-                          setMailOrderOptions([]);
                         }
                       }}
                       className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -3991,6 +4017,40 @@ export default function AdminDashboard({ userName }: AdminDashboardProps) {
                 Änderungen gelten sofort nach dem Speichern.
               </span>
             </div>
+          </div>
+        )}
+        {activeTab === "keycloak-users" && (
+          <div className="mt-16 border-t border-white/10 pt-12">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Keycloak User Management
+              </h2>
+              <p className="text-gray-400">
+                Verwalte die Synchronisation zwischen lokalen Benutzern und Keycloak SSO
+              </p>
+            </div>
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-white">
+                  Benutzerübersicht
+                </h3>
+                <a
+                  href="/admin/keycloak-users"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-violet-600 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500"
+                >
+                  Zur detaillierten Verwaltung
+                </a>
+              </div>
+              <p className="text-gray-300">
+                Für die vollständige Keycloak User-Verwaltung klicke auf den Button oben.
+                Dort kannst du einzelne Benutzer importieren und den Synchronisationsstatus überwachen.
+              </p>
+            </div>
+          </div>
+        )}
+        {activeTab === "invoice-ninja" && (
+          <div className="mt-16 border-t border-white/10 pt-12">
+            <InvoiceNinjaAdmin />
           </div>
         )}
       </div>

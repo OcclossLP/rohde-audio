@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
+import { getPortalHref } from "@/lib/subdomains";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -40,13 +39,14 @@ export default function AdminLoginPage() {
 
     if (payload?.role === "CUSTOMER") {
       if (payload?.verified) {
-        router.push("/account");
+        window.location.assign(getPortalHref("account"));
       } else {
-        router.push("/verify");
+        window.location.assign("/verify");
       }
-    } else {
-      router.push("/admin");
+      return;
     }
+
+    window.location.assign(getPortalHref("admin"));
   };
 
   return (
@@ -113,6 +113,15 @@ export default function AdminLoginPage() {
             {loading ? "Bitte warten..." : "Login"}
           </button>
         </form>
+
+        <div className="mt-6 flex flex-col gap-3">
+          <a
+            href="/api/auth/keycloak/start"
+            className="inline-flex w-full items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Mit Rohde-Keycloak anmelden
+          </a>
+        </div>
 
         <div className="mt-6 text-center text-sm text-gray-400">
           Noch kein Konto?{" "}

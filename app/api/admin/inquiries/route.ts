@@ -140,7 +140,8 @@ export async function POST(request: Request) {
         crypto.randomBytes(32).toString("hex")
       );
       const guestId = crypto.randomUUID();
-      const customerNumber = generateCustomerNumber();
+      // Remove customer number generation - will be handled by Invoice Ninja sync
+      const customerNumber = null;
       const [firstName, ...rest] = contactName ? contactName.split(/\s+/) : [];
       const lastName = rest.join(" ");
       db.prepare(

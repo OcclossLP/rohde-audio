@@ -1,0 +1,22 @@
+import crypto from "crypto";
+import { NextResponse } from "next/server";
+import { getKeycloakAuthUrl } from "@/lib/keycloak";
+
+const STATE_COOKIE = "keycloak_state";
+const STATE_EXPIRY_SECONDS = 300;
+
+export async function GET() {
+  const state = crypto.randomBytes(16).toString("hex");
+  const redirectUrl = getKeycloakAuthUrl(state);
+
+  const response = NextResponse.redirect(redirectUrl);
+  response.cookies.set(STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: STATE_EXPIRY_SECONDS,
+  });
+
+  return response;
+}

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -84,6 +85,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "FAQ nicht gefunden." }, { status: 404 });
   }
 
+  revalidateTag("faqs", "max");
+
   return NextResponse.json({ ...updated, isActive: Boolean(updated.isActive) });
 }
 
@@ -98,5 +101,6 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
   const { id } = await context.params;
   db.prepare("DELETE FROM faqs WHERE id = ?").run(id);
+  revalidateTag("faqs", "max");
   return NextResponse.json({ success: true });
 }

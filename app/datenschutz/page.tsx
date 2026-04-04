@@ -20,7 +20,6 @@ export default function Datenschutz() {
           Ulrich-Thater-Straße 7<br />
           34414 Warburg<br />
           Deutschland<br />
-          Telefon: <a href="tel:+491706480129" className="text-purple-500">+49 170 6480129</a><br />
           E-Mail: <a href="mailto:info@rohde-audio.com" className="text-purple-500">info@rohde-audio.com</a>
         </p>
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Music,
   Speaker,
@@ -8,10 +9,11 @@ import {
 import Wave from "react-wavify";
 import { theme } from "./components/Theme";
 import { Metadata } from "next";
+import { getPublicFaqs } from "@/lib/faqs";
 import { getPackages } from "@/lib/packages";
 import FaqSection from "./components/FaqSection";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Rohde Audio – Musikanlagen & Eventtechnik",
@@ -74,7 +76,7 @@ type PackageCard = {
 };
 
 export default async function Home() {
-  const packages = await getPackages();
+  const [packages, faqs] = await Promise.all([getPackages(), getPublicFaqs()]);
   const packageCards: PackageCard[] = packages.length
     ? packages
     : [
@@ -134,21 +136,21 @@ export default async function Home() {
           </p>
 
           <div className="flex justify-center gap-6 flex-wrap">
-            <a
+            <Link
               href="/contact"
               className="btn-primary px-12 py-5 rounded-full font-semibold text-white transition hover:scale-105"
               style={{ backgroundColor: theme.primary }}
               data-cta="cta_contact"
             >
               Jetzt anfragen
-            </a>
-            <a
+            </Link>
+            <Link
               href="/services"
-              className="px-12 py-5 rounded-full font-semibold text-white border border-white/20 hover:bg-white/10 transition"
+              className="hero-secondary-btn px-12 py-5 rounded-full font-semibold text-white border border-white/20 hover:bg-white/10 transition"
               data-cta="cta_services"
             >
               Mehr erfahren
-            </a>
+            </Link>
           </div>
 
           {/* TRUST BADGES */}
@@ -164,7 +166,7 @@ export default async function Home() {
           <Wave
             fill="rgba(168,85,247,0.6)"
             paused={false}
-            options={{ height: 80, amplitude: 30, speed: 0.2, points: 5 }}
+            options={{ height: 90, amplitude: 35, speed: 0.2, points: 6 }}
           />
         </div>
       </section>
@@ -303,17 +305,17 @@ export default async function Home() {
         <p className="text-xl text-gray-300 mb-12">
           Schreib uns jetzt – wir kümmern uns um den Rest.
         </p>
-        <a
+        <Link
           href="/contact"
           className="btn-primary px-14 py-6 rounded-full font-semibold text-lg text-white transition hover:scale-105"
           style={{ backgroundColor: theme.primary }}
           data-cta="cta_contact"
         >
           Anfrage starten
-        </a>
+        </Link>
       </section>
 
-      <FaqSection />
+      <FaqSection initialFaqs={faqs} />
     </main>
   );
 }

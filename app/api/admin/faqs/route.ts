@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -89,6 +90,8 @@ export async function POST(request: Request) {
   if (!created) {
     return NextResponse.json({ error: "FAQ nicht gefunden." }, { status: 404 });
   }
+
+  revalidateTag("faqs", "max");
 
   return NextResponse.json(
     { ...created, isActive: Boolean(created.isActive) },

@@ -24,7 +24,6 @@ export default function Impressum() {
         </p>
 
         <p>
-          Telefon: <a href="tel:+491706480129" className="text-purple-500">+49 170 6480129</a><br />
           E-Mail: <a href="mailto:info@rohde-audio.com" className="text-purple-500">info@rohde-audio.com</a>
         </p>
 

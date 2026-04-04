@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+export const MIN_PASSWORD_LENGTH = 8;
+
 const ITERATIONS = 100_000;
 const KEYLEN = 64;
 const DIGEST = "sha512";

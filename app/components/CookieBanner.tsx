@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 type Consent = "accepted" | "declined" | "necessary";
 
 const COOKIE_NAME = "cookie_consent";
-const MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+const MAX_AGE = 60 * 60 * 24 * 365;
+const subscribe = () => () => undefined;
 
 const getConsent = () => {
+  if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 };
@@ -17,14 +19,10 @@ const setConsent = (value: Consent) => {
 };
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+  const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    const existing = getConsent();
-    if (!existing) {
-      setVisible(true);
-    }
-  }, []);
+  const visible = hydrated && !dismissed && getConsent() === null;
 
   if (!visible) return null;
 
@@ -47,7 +45,7 @@ export default function CookieBanner() {
             className="cookie-btn cookie-btn--ghost"
             onClick={() => {
               setConsent("declined");
-              setVisible(false);
+              setDismissed(true);
             }}
           >
             Ablehnen
@@ -57,7 +55,7 @@ export default function CookieBanner() {
             className="cookie-btn cookie-btn--ghost"
             onClick={() => {
               setConsent("necessary");
-              setVisible(false);
+              setDismissed(true);
             }}
           >
             Nur notwendige
@@ -67,7 +65,7 @@ export default function CookieBanner() {
             className="cookie-btn cookie-btn--primary"
             onClick={() => {
               setConsent("accepted");
-              setVisible(false);
+              setDismissed(true);
             }}
           >
             Akzeptieren

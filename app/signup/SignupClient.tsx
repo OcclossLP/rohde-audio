@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
+import { getPortalHref } from "@/lib/subdomains";
 
 type InquiryDraft = {
   eventType: string;
@@ -13,38 +14,34 @@ type InquiryDraft = {
 };
 
 export default function SignupClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [inquiryDraft, setInquiryDraft] = useState<InquiryDraft | null>(null);
+  const prefills = useMemo(() => {
+    const inquiry = {
+      eventType: searchParams?.get("eventType") ?? "",
+      participants: searchParams?.get("participants") ?? "",
+      eventDate: searchParams?.get("date") ?? "",
+      message: searchParams?.get("message") ?? "",
+    };
+
+    return {
+      firstName: searchParams?.get("firstName") ?? "",
+      lastName: searchParams?.get("lastName") ?? "",
+      email: searchParams?.get("email") ?? "",
+      phone: searchParams?.get("phone") ?? "",
+      inquiry: inquiry.message ? inquiry : null,
+    };
+  }, [searchParams]);
+  const [firstName, setFirstName] = useState(() => prefills.firstName);
+  const [lastName, setLastName] = useState(() => prefills.lastName);
+  const [email, setEmail] = useState(() => prefills.email);
+  const [phone, setPhone] = useState(() => prefills.phone);
+  const inquiryDraft = prefills.inquiry as InquiryDraft | null;
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [createKeycloakAccount, setCreateKeycloakAccount] = useState(true); // Default: aktiviert
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!searchParams) return;
-    const prefillFirstName = searchParams.get("firstName") ?? "";
-    const prefillLastName = searchParams.get("lastName") ?? "";
-    const prefillEmail = searchParams.get("email") ?? "";
-    const prefillPhone = searchParams.get("phone") ?? "";
-    const inquiry = {
-      eventType: searchParams.get("eventType") ?? "",
-      participants: searchParams.get("participants") ?? "",
-      eventDate: searchParams.get("date") ?? "",
-      message: searchParams.get("message") ?? "",
-    };
-
-    if (prefillFirstName) setFirstName(prefillFirstName);
-    if (prefillLastName) setLastName(prefillLastName);
-    if (prefillEmail) setEmail(prefillEmail);
-    if (prefillPhone) setPhone(prefillPhone);
-    if (inquiry.message) setInquiryDraft(inquiry);
-  }, [searchParams]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,26 +52,18 @@ export default function SignupClient() {
       return;
     }
 
+    if (password.length < 8) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
+
     if (!acceptTerms) {
       setError("Bitte akzeptiere die AGB, um fortzufahren.");
       return;
     }
 
     setLoading(true);
-    const queryInquiry = searchParams
-      ? {
-          eventType: searchParams.get("eventType") ?? "",
-          participants: searchParams.get("participants") ?? "",
-          eventDate: searchParams.get("date") ?? "",
-          message: searchParams.get("message") ?? "",
-        }
-      : null;
-    const activeInquiry =
-      inquiryDraft?.message
-        ? inquiryDraft
-        : queryInquiry?.message
-        ? queryInquiry
-        : null;
+    const activeInquiry = inquiryDraft?.message ? inquiryDraft : null;
 
     const response = await csrfFetch("/api/auth/signup", {
       method: "POST",
@@ -86,6 +75,7 @@ export default function SignupClient() {
         phone,
         password,
         inquiry: activeInquiry,
+        createKeycloakAccount,
       }),
     });
 
@@ -97,7 +87,7 @@ export default function SignupClient() {
       return;
     }
 
-    router.push("/verify");
+    window.location.assign(getPortalHref("account", "/verify"));
   };
 
   return (
@@ -185,6 +175,7 @@ export default function SignupClient() {
               id="password"
               type="password"
               required
+              minLength={8}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -204,6 +195,22 @@ export default function SignupClient() {
               className="w-full rounded-xl bg-(--surface-3) border border-white/10 px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
+
+          <label className="flex items-start gap-3 text-sm text-gray-300">
+            <input
+              type="checkbox"
+              checked={createKeycloakAccount}
+              onChange={(event) => setCreateKeycloakAccount(event.target.checked)}
+              className="mt-1 rounded border-white/20 bg-(--surface-3) text-purple-500 focus:ring-purple-500"
+            />
+            <span>
+              SSO-Account bei <strong>Rohde-Keycloak</strong> erstellen
+              <br />
+              <span className="text-xs text-gray-400">
+                Ermöglicht zentrales Login für alle Dienste (optional)
+              </span>
+            </span>
+          </label>
 
           <label className="flex items-start gap-3 text-sm text-gray-300">
             <input

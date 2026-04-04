@@ -19,23 +19,22 @@ export default async function VerifyPage() {
     .prepare(
       `
         SELECT email,
-               verification_sent_at as verificationSentAt
+               CASE
+                 WHEN verification_sent_at IS NULL THEN 0
+                 ELSE MAX(
+                   0,
+                   120 - CAST(strftime('%s', 'now') - strftime('%s', verification_sent_at) AS INTEGER)
+                 )
+               END as cooldownSeconds
         FROM users
         WHERE id = ?
       `
     )
-    .get(user.id) as { email: string; verificationSentAt: string | null } | undefined;
+    .get(user.id) as { email: string; cooldownSeconds: number | null } | undefined;
 
   if (!record) {
     redirect("/admin/login");
   }
 
-  const cooldownSeconds = record.verificationSentAt
-    ? Math.max(
-        0,
-        120 - Math.floor((Date.now() - new Date(record.verificationSentAt).getTime()) / 1000)
-      )
-    : 0;
-
-  return <VerifyClient email={record.email} initialCooldown={cooldownSeconds} />;
+  return <VerifyClient email={record.email} initialCooldown={record.cooldownSeconds ?? 0} />;
 }

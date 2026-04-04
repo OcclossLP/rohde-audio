@@ -65,7 +65,7 @@ const getClientIp = async () => {
 
 const parseBypassIps = (value: string) =>
   value
-    .split(/[,\\n]/)
+    .split(/[ ,\n]/)
     .map((item) => item.trim())
     .filter(Boolean);
 
@@ -100,7 +100,6 @@ export default async function RootLayout({
     >
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <meta name="description" content="Deine Website-Beschreibung" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -117,7 +116,9 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="bg-(--page-bg) text-[var(--page-text)]">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} bg-(--page-bg) text-(--page-text) antialiased`}
+      >
         <PageViewTracker enabled={analyticsEnabled} />
         <CtaTracker enabled={analyticsEnabled} />
         <MaintenanceOverlay

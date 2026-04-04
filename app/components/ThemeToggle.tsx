@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark";
 type Consent = "accepted" | "declined" | "necessary" | null;
@@ -11,21 +12,32 @@ const getConsent = (): Consent => {
   return match ? (decodeURIComponent(match[1]) as Consent) : null;
 };
 
+const getInitialTheme = (): Theme => {
+  if (typeof document === "undefined") return "dark";
+  const consent = getConsent();
+  const stored =
+    consent && consent !== "declined"
+      ? (localStorage.getItem("theme") as Theme | null)
+      : null;
+  const current = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  return stored || current;
+};
+
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const consent = getConsent();
-    const stored =
-      consent && consent !== "declined"
-        ? (localStorage.getItem("theme") as Theme | null)
-        : null;
-    const initial = stored || "dark";
+    const initial = getInitialTheme();
     setTheme(initial);
     document.documentElement.dataset.theme = initial;
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    document.documentElement.dataset.theme = theme;
+  }, [theme, mounted]);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -43,29 +55,21 @@ export default function ThemeToggle() {
     }, 620);
   };
 
-  if (!mounted) {
-    return (
-      <button
-        className="theme-toggle theme-toggle--placeholder"
-        aria-label="Theme umschalten"
-        type="button"
-      />
-    );
-  }
+  const isDark = theme === "dark";
+  const label = isDark ? "Zum Light-Mode wechseln" : "Zum Dark-Mode wechseln";
+  const Icon = isDark ? Sun : Moon;
 
   return (
     <button
       onClick={toggle}
-      className="theme-toggle"
-      aria-label="Theme umschalten"
-      aria-pressed={theme === "dark"}
+      className={`theme-toggle ${isDark ? "theme-toggle--dark" : ""}`}
+      aria-label={label}
+      aria-pressed={isDark}
+      title={label}
       type="button"
-      data-theme={theme}
+      data-mounted={mounted ? "true" : "false"}
     >
-      <span className="theme-toggle__track" />
-      <span className="theme-toggle__thumb" />
-      <span className="theme-toggle__icon theme-toggle__icon--sun">☀</span>
-      <span className="theme-toggle__icon theme-toggle__icon--moon">☾</span>
+      <Icon size={18} strokeWidth={2.1} />
     </button>
   );
 }

@@ -2,9 +2,18 @@ import crypto from "crypto";
 import { cookies } from "next/headers";
 import { db } from "./db";
 import { getSettingNumber } from "./settings";
+import { getCookieOptions } from "./subdomains";
 
 export const SESSION_COOKIE = "session_token";
 export const SESSION_DAYS = 14;
+
+export function getSessionCookieOptions(expires: Date) {
+  return getCookieOptions({ expires, sharedDomain: false, sameSite: "strict" });
+}
+
+export function getExpiredSessionCookieOptions() {
+  return getCookieOptions({ expires: new Date(0), sharedDomain: false, sameSite: "strict" });
+}
 
 export async function createSession(userId: string) {
   const sessionDays = getSettingNumber("security_session_days", SESSION_DAYS);
@@ -33,7 +42,6 @@ export async function getCurrentUser() {
     .prepare(
       `
         SELECT s.token, s.expires_at as expiresAt, u.id, u.email, u.name, u.role,
-               u.password_hash as passwordHash, u.password_salt as passwordSalt,
                u.email_verified_at as emailVerifiedAt,
                u.deleted_at as deletedAt,
                u.is_guest as isGuest
@@ -49,8 +57,6 @@ export async function getCurrentUser() {
     email: string;
     name: string | null;
     role: string;
-    passwordHash: string;
-    passwordSalt: string;
     emailVerifiedAt: string | null;
     deletedAt: string | null;
     isGuest: number;
@@ -73,8 +79,6 @@ export async function getCurrentUser() {
     email: session.email,
     name: session.name,
     role: session.role,
-    passwordHash: session.passwordHash,
-    passwordSalt: session.passwordSalt,
     emailVerifiedAt: session.emailVerifiedAt,
   };
 }

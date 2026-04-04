@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import { db } from "@/lib/db";
-import { createSession, SESSION_COOKIE } from "@/lib/auth";
+import {
+  createSession,
+  getSessionCookieOptions,
+  SESSION_COOKIE,
+} from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { requireCsrf } from "@/lib/csrf";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
 import { getSettingNumber } from "@/lib/settings";
-import { generateCustomerNumber } from "@/lib/ids";
 
 const normalizePhone = (value: string) => value.replace(/\s+/g, "");
 
@@ -27,13 +30,7 @@ async function ensureAdminFromEnv() {
 
   if (existingByEmail) {
     const { passwordHash, passwordSalt } = hashPassword(adminPassword);
-    if (!existingByEmail.customerNumber) {
-      const customerNumber = generateCustomerNumber();
-      db.prepare("UPDATE users SET customer_number = ? WHERE id = ?").run(
-        customerNumber,
-        existingByEmail.id
-      );
-    }
+    // Remove customer number generation - will be handled by Invoice Ninja sync
     db.prepare(
       `
         UPDATE users
@@ -55,19 +52,13 @@ async function ensureAdminFromEnv() {
     )
     .get() as { id: string; customerNumber: string | null } | undefined;
   if (existingAdmin) {
-    if (!existingAdmin.customerNumber) {
-      const customerNumber = generateCustomerNumber();
-      db.prepare("UPDATE users SET customer_number = ? WHERE id = ?").run(
-        customerNumber,
-        existingAdmin.id
-      );
-    }
+    // Remove customer number generation - will be handled by Invoice Ninja sync
     return;
   }
 
   const { passwordHash, passwordSalt } = hashPassword(adminPassword);
   const now = new Date().toISOString();
-  const customerNumber = generateCustomerNumber();
+  // Remove customer number generation - will be handled by Invoice Ninja sync
   db.prepare(
     `
       INSERT INTO users (id, email, name, customer_number, role, password_hash, password_salt, email_verified_at, created_at, updated_at)
@@ -77,7 +68,7 @@ async function ensureAdminFromEnv() {
     crypto.randomUUID(),
     normalizedEmail,
     process.env.ADMIN_NAME || "Admin",
-    customerNumber,
+    null, // customer_number will be set by Invoice Ninja sync
     "ADMIN",
     passwordHash,
     passwordSalt,
@@ -154,13 +145,7 @@ export async function POST(request: Request) {
   const { token, expiresAt } = await createSession(user.id);
 
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    expires: expiresAt,
-    path: "/",
-  });
+  cookieStore.set(SESSION_COOKIE, token, getSessionCookieOptions(expiresAt));
 
   const verified = user.role === "ADMIN" || Boolean(user.emailVerifiedAt);
   return NextResponse.json({ success: true, role: user.role, verified });

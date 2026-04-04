@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+const subscribe = () => () => undefined;
+const shouldShowNotice = () => {
+  if (typeof window === "undefined") return false;
+  return (
+    window.location.protocol !== "https:" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+  );
+};
 
 export default function HttpsNotice() {
-  const [show, setShow] = useState(false);
+  const hydrated = useSyncExternalStore(subscribe, () => true, () => false);
+  const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const isLocal =
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
-    const isHttps = window.location.protocol === "https:";
-    if (!isHttps && !isLocal) {
-      setShow(true);
-    }
-  }, []);
+  const show = hydrated && !dismissed && shouldShowNotice();
 
   if (!show) return null;
 
@@ -25,7 +27,7 @@ export default function HttpsNotice() {
         <button
           type="button"
           className="https-notice__close"
-          onClick={() => setShow(false)}
+          onClick={() => setDismissed(true)}
           aria-label="Hinweis schließen"
         >
           ✕

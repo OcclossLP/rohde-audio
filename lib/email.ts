@@ -24,8 +24,16 @@ const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 const normalizeBool = (value: string | undefined) =>
   Boolean(value && ["1", "true", "yes", "on"].includes(value.toLowerCase()));
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 const applyTemplate = (template: string, vars: Record<string, string>) =>
-  template.replace(/\{(\w+)\}/g, (_, key: string) => vars[key] ?? "");
+  template.replace(/\{(\w+)\}/g, (_, key: string) => escapeHtml(vars[key] ?? ""));
 
 const resolveFromAddress = (fromAddress: string, fromName: string) => {
   if (!fromAddress) return fromName;
@@ -83,10 +91,12 @@ const getBcc = (bccEnabled: boolean, bccAddress: string, to: string | string[]) 
   return [bccAddress];
 };
 
+
 export async function sendInquiryEmails(payload: InquiryEmailPayload) {
-  if (!canSendInquiryMail()) return { sent: false };
+  if (!canSendMail()) return { sent: false };
   const resend = getResend();
   const config = getEmailConfig();
+  const ownerEmail = process.env.FOUNDER_EMAIL ?? "";
   const {
     name,
     email,
@@ -98,13 +108,22 @@ export async function sendInquiryEmails(payload: InquiryEmailPayload) {
     orderNumber,
     customerNumber,
   } = payload;
+  const safeName = escapeHtml(name || "");
+  const safeEmail = escapeHtml(email || "");
+  const safePhone = escapeHtml(phone || "—");
+  const safeEventType = escapeHtml(eventType || "—");
+  const safeParticipants = escapeHtml(participants || "—");
+  const safeEventDate = escapeHtml(eventDate || "—");
+  const safeMessage = escapeHtml(message || "");
+  const safeOrderNumber = escapeHtml(orderNumber || "—");
+  const safeCustomerNumber = escapeHtml(customerNumber || "—");
   const detailRows = [
-    { label: "Auftragsnummer", value: orderNumber ?? "—" },
-    { label: "Kundennummer", value: customerNumber ?? "—" },
-    { label: "Telefon", value: phone ?? "—" },
-    { label: "Event-Typ", value: eventType ?? "—" },
-    { label: "Teilnehmer", value: participants ?? "—" },
-    { label: "Datum", value: eventDate ?? "—" },
+    { label: "Auftragsnummer", value: safeOrderNumber },
+    { label: "Kundennummer", value: safeCustomerNumber },
+    { label: "Telefon", value: safePhone },
+    { label: "Event-Typ", value: safeEventType },
+    { label: "Teilnehmer", value: safeParticipants },
+    { label: "Datum", value: safeEventDate },
   ]
     .map(
       (row) => `
@@ -121,38 +140,40 @@ export async function sendInquiryEmails(payload: InquiryEmailPayload) {
     orderNumber: orderNumber ?? "",
     customerNumber: customerNumber ?? "",
   });
-  await resend.emails.send({
-    from: config.from,
-    to: process.env.FOUNDER_EMAIL!,
-    subject: inquiryOwnerSubject,
-    html: `
-      <div style="background:#f8fafc;padding:28px 20px;">
-        <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
-          <div style="background:${config.gradient};padding:20px 28px;color:#ffffff;">
-            ${config.logoUrl ? `<img src="${config.logoUrl}" alt="${config.brandName}" style="height:28px;margin-bottom:12px;display:block;" />` : ""}
-            <p style="margin:0;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">Neue Anfrage</p>
-            <h1 style="margin:8px 0 0;font-size:24px;">${name}</h1>
-          </div>
-          <div style="padding:24px 28px;">
-            <p style="margin:0 0 16px;color:#111827;font-size:15px;">Kontakt:</p>
-            <div style="margin-bottom:16px;">
-              <div style="color:#111827;font-size:14px;"><strong>E-Mail:</strong> ${email}</div>
-              <div style="color:#111827;font-size:14px;"><strong>Telefon:</strong> ${phone ?? "—"}</div>
+  if (ownerEmail) {
+    await resend.emails.send({
+      from: config.from,
+      to: ownerEmail,
+      subject: inquiryOwnerSubject,
+      html: `
+        <div style="background:#f8fafc;padding:28px 20px;">
+          <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div style="background:${config.gradient};padding:20px 28px;color:#ffffff;">
+              ${config.logoUrl ? `<img src="${config.logoUrl}" alt="${config.brandName}" style="height:28px;margin-bottom:12px;display:block;" />` : ""}
+              <p style="margin:0;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">Neue Anfrage</p>
+              <h1 style="margin:8px 0 0;font-size:24px;">${safeName}</h1>
             </div>
-            <table style="width:100%;border-collapse:collapse;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;">
-              ${detailRows}
-            </table>
-            <div style="margin-top:16px;">
-              <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">Nachricht</p>
-              <div style="background:#f8fafc;border:1px solid #e5e7eb;padding:14px;border-radius:12px;color:#111827;font-size:14px;white-space:pre-wrap;">${message}</div>
+            <div style="padding:24px 28px;">
+              <p style="margin:0 0 16px;color:#111827;font-size:15px;">Kontakt:</p>
+              <div style="margin-bottom:16px;">
+                <div style="color:#111827;font-size:14px;"><strong>E-Mail:</strong> ${safeEmail}</div>
+                <div style="color:#111827;font-size:14px;"><strong>Telefon:</strong> ${safePhone}</div>
+              </div>
+              <table style="width:100%;border-collapse:collapse;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;">
+                ${detailRows}
+              </table>
+              <div style="margin-top:16px;">
+                <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">Nachricht</p>
+                <div style="background:#f8fafc;border:1px solid #e5e7eb;padding:14px;border-radius:12px;color:#111827;font-size:14px;white-space:pre-wrap;">${safeMessage}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `,
-    replyTo: email,
-    bcc: getBcc(config.bccEnabled, config.bccAddress, process.env.FOUNDER_EMAIL!),
-  });
+      `,
+      replyTo: email,
+      bcc: getBcc(config.bccEnabled, config.bccAddress, ownerEmail),
+    });
+  }
 
   const inquiryCustomerSubject = applyTemplate(config.subjects.inquiryCustomer, {
     name,
@@ -172,7 +193,7 @@ export async function sendInquiryEmails(payload: InquiryEmailPayload) {
             <h1 style="margin:8px 0 0;font-size:24px;">Danke fuer deine Anfrage!</h1>
           </div>
           <div style="padding:24px 28px;">
-            <p style="margin:0 0 12px;color:#111827;font-size:15px;">Hallo ${name},</p>
+            <p style="margin:0 0 12px;color:#111827;font-size:15px;">Hallo ${safeName},</p>
             <p style="margin:0 0 16px;color:#6b7280;font-size:14px;">
               Wir haben deine Nachricht erhalten und melden uns schnellstmoeglich.
             </p>
@@ -204,6 +225,8 @@ export async function sendNewAccountEmail({
   if (!canSendInquiryMail()) return { sent: false };
   const resend = getResend();
   const config = getEmailConfig();
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
   await resend.emails.send({
     from: config.from,
     to: process.env.FOUNDER_EMAIL!,
@@ -217,9 +240,9 @@ export async function sendNewAccountEmail({
             <h1 style="margin:6px 0 0;font-size:22px;">Neuer Account</h1>
           </div>
           <div style="padding:20px 24px;">
-            <p style="margin:0 0 8px;color:#111827;font-size:14px;"><strong>Name:</strong> ${name}</p>
-            <p style="margin:0;color:#111827;font-size:14px;"><strong>E-Mail:</strong> ${email}</p>
-            ${config.footer ? `<div style="margin-top:16px;color:#6b7280;font-size:12px;">${config.footer}</div>` : ""}
+            <p style="margin:0 0 8px;color:#111827;font-size:14px;"><strong>Name:</strong> ${safeName}</p>
+            <p style="margin:0;color:#111827;font-size:14px;"><strong>E-Mail:</strong> ${safeEmail}</p>
+            ${config.footer ? `<div style="margin-top:16px;color:#6b7280;font-size:12px;">${escapeHtml(config.footer)}</div>` : ""}
           </div>
         </div>
       </div>
@@ -242,6 +265,9 @@ export async function sendVerificationEmail({
   if (!canSendMail()) return { sent: false };
   const resend = getResend();
   const config = getEmailConfig();
+  const safeName = escapeHtml(name);
+  const safeCode = escapeHtml(code);
+
   await resend.emails.send({
     from: config.from,
     to: email,
@@ -255,12 +281,12 @@ export async function sendVerificationEmail({
             <h1 style="margin:6px 0 0;font-size:22px;">Account bestaetigen</h1>
           </div>
           <div style="padding:22px 24px;">
-            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${name},</p>
+            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${safeName},</p>
             <p style="margin:0 0 16px;color:#6b7280;font-size:14px;">
               Dein Bestaetigungscode lautet:
             </p>
             <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:14px;text-align:center;font-size:22px;font-weight:700;letter-spacing:6px;color:#111827;">
-              ${code}
+              ${safeCode}
             </div>
             <p style="margin:16px 0 0;color:#6b7280;font-size:13px;">Der Code ist 10 Minuten gueltig.</p>
             ${config.footer ? `<div style="margin-top:16px;color:#6b7280;font-size:12px;">${config.footer}</div>` : ""}
@@ -292,11 +318,16 @@ export async function sendInquiryStatusEmail({
   if (!canSendMail()) return { sent: false };
   const resend = getResend();
   const config = getEmailConfig();
+  const safeName = escapeHtml(name);
+  const safeOrderNumber = escapeHtml(orderNumber ?? "—");
+  const safeCustomerNumber = escapeHtml(customerNumber ?? "—");
+  const safeStatusLabel = escapeHtml(statusLabel);
+  const safeMessage = escapeHtml(message ?? "");
   const noteBlock = message
     ? `
       <div style="margin-top:16px;">
         <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">Nachricht vom Team</p>
-        <div style="background:#f8fafc;border:1px solid #e5e7eb;padding:14px;border-radius:12px;color:#111827;font-size:14px;white-space:pre-wrap;">${message}</div>
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;padding:14px;border-radius:12px;color:#111827;font-size:14px;white-space:pre-wrap;">${safeMessage}</div>
       </div>
     `
     : "";
@@ -320,16 +351,16 @@ export async function sendInquiryStatusEmail({
             <h1 style="margin:6px 0 0;font-size:22px;">Status-Update</h1>
           </div>
           <div style="padding:22px 24px;">
-            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${name},</p>
+            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${safeName},</p>
             <p style="margin:0 0 16px;color:#6b7280;font-size:14px;">
               Der Status deiner Anfrage wurde aktualisiert.
             </p>
             <div style="margin-bottom:12px;">
-              <div style="color:#111827;font-size:13px;"><strong>Auftragsnummer:</strong> ${orderNumber ?? "—"}</div>
-              <div style="color:#111827;font-size:13px;"><strong>Kundennummer:</strong> ${customerNumber ?? "—"}</div>
+              <div style="color:#111827;font-size:13px;"><strong>Auftragsnummer:</strong> ${safeOrderNumber}</div>
+              <div style="color:#111827;font-size:13px;"><strong>Kundennummer:</strong> ${safeCustomerNumber}</div>
             </div>
             <div style="background:#eef2ff;border:1px solid #c7d2fe;padding:12px;border-radius:12px;color:#1e1b4b;font-size:14px;font-weight:600;">
-              Neuer Status: ${statusLabel}
+              Neuer Status: ${safeStatusLabel}
             </div>
             ${noteBlock}
             <p style="margin:16px 0 0;color:#6b7280;font-size:13px;">
@@ -364,17 +395,22 @@ export async function sendCustomCustomerEmail({
   if (!canSendMail()) return { sent: false };
   const resend = getResend();
   const config = getEmailConfig();
+  const safeName = escapeHtml(name);
+  const safeOrderNumber = escapeHtml(orderNumber ?? "—");
+  const safeCustomerNumber = escapeHtml(customerNumber ?? "—");
   const subjectLine = subject?.trim() || config.subjects.customDefault;
   const templatedSubject = applyTemplate(subjectLine, {
     name,
     orderNumber: orderNumber ?? "",
     customerNumber: customerNumber ?? "",
   });
-  const templatedMessage = applyTemplate(message, {
-    name,
-    orderNumber: orderNumber ?? "",
-    customerNumber: customerNumber ?? "",
-  });
+  const templatedMessage = escapeHtml(
+    applyTemplate(message, {
+      name,
+      orderNumber: orderNumber ?? "",
+      customerNumber: customerNumber ?? "",
+    })
+  );
   await resend.emails.send({
     from: config.from,
     to: email,
@@ -385,10 +421,11 @@ export async function sendCustomCustomerEmail({
           <div style="background:${config.gradient};padding:18px 24px;color:#ffffff;">
             ${config.logoUrl ? `<img src="${config.logoUrl}" alt="${config.brandName}" style="height:24px;margin-bottom:10px;display:block;" />` : ""}
             <p style="margin:0;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">${config.brandName}</p>
-            <h1 style="margin:6px 0 0;font-size:22px;">${templatedSubject}</h1>
+            <h1 style="margin:6px 0 0;font-size:22px;">${escapeHtml(templatedSubject)}</h1>
           </div>
           <div style="padding:22px 24px;">
-            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${name},</p>
+            <p style="margin:0 0 8px;color:#111827;font-size:14px;">Hallo ${safeName},</p>
+            <p style="margin:0 0 12px;color:#111827;font-size:13px;">${safeOrderNumber !== "—" ? `<strong>Auftragsnummer:</strong> ${safeOrderNumber}<br/>` : ""}${safeCustomerNumber !== "—" ? `<strong>Kundennummer:</strong> ${safeCustomerNumber}` : ""}</p>
             <div style="background:#f8fafc;border:1px solid #e5e7eb;padding:14px;border-radius:12px;color:#111827;font-size:14px;white-space:pre-wrap;">${templatedMessage}</div>
             ${config.footer ? `<div style="margin-top:16px;color:#6b7280;font-size:12px;">${config.footer}</div>` : ""}
           </div>

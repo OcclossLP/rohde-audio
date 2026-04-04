@@ -10,7 +10,8 @@ import {
   getSettingValue,
   normalizeInquiryStatus,
 } from "@/lib/settings";
-import { generateCustomerNumber, generateOrderNumber } from "@/lib/ids";
+import { InvoiceNinjaSync } from "@/lib/invoice-ninja-sync";
+import { generateOrderNumber } from "@/lib/ids";
 
 export async function POST(request: Request) {
   try {
@@ -86,7 +87,6 @@ export async function POST(request: Request) {
     if (!guestUserId) {
       const id = crypto.randomUUID();
       const now = new Date().toISOString();
-      const customerNumber = generateCustomerNumber();
       const { passwordHash, passwordSalt } = hashPassword(
         crypto.randomBytes(32).toString("hex")
       );
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         name || null,
         firstName || null,
         lastName || null,
-        customerNumber,
+        null,
         "CUSTOMER",
         passwordHash,
         passwordSalt,
@@ -122,16 +122,7 @@ export async function POST(request: Request) {
         now
       );
       guestUserId = id;
-      guestCustomerNumber = customerNumber;
     } else {
-      if (!guestCustomerNumber) {
-        const customerNumber = generateCustomerNumber();
-        db.prepare("UPDATE users SET customer_number = ? WHERE id = ?").run(
-          customerNumber,
-          guestUserId
-        );
-        guestCustomerNumber = customerNumber;
-      }
       if (existingUser?.isGuest && name) {
         db.prepare(
           "UPDATE users SET name = ?, first_name = ?, last_name = ?, updated_at = ? WHERE id = ?"
@@ -143,6 +134,29 @@ export async function POST(request: Request) {
           guestUserId
         );
       }
+    }
+
+    // Invoice Ninja mit Kundendaten füllen und Nummer übernehmen
+    try {
+      const sync = InvoiceNinjaSync.fromSettings();
+      if (sync && guestUserId) {
+        const syncResult = await sync.syncCustomer({
+          id: guestUserId,
+          email,
+          first_name: firstName || existingUser?.firstName || "",
+          last_name: lastName || existingUser?.lastName || "",
+          phone: phone || undefined,
+        });
+        if (syncResult?.customer_number) {
+          guestCustomerNumber = syncResult.customer_number;
+        }
+      }
+    } catch (error) {
+      console.error("Invoice Ninja Sync fehlgeschlagen bei Anfrage:", error);
+    }
+
+    if (!guestCustomerNumber) {
+      guestCustomerNumber = existingUser?.customerNumber ?? null;
     }
 
     const inquiryId = crypto.randomUUID();

@@ -19,8 +19,8 @@ export default function AGB() {
         <ol className="list-decimal pl-6 space-y-2">
           <li>
             Diese AGB gelten für alle Verträge über die Vermietung sowie ggf. Lieferung, Aufbau/Abbau und Einweisung von
-            Veranstaltungstechnik zwischen Rohde Audio (Benjamin Rohde Audiotechnik) ("Vermieter") und dem Kunden
-            ("Mieter").
+            Veranstaltungstechnik zwischen Rohde Audio (Benjamin Rohde Audiotechnik) (&quot;Vermieter&quot;) und dem Kunden
+            (&quot;Mieter&quot;).
           </li>
           <li>
             Abweichende Bedingungen des Mieters gelten nur, wenn sie vom Vermieter ausdrücklich bestätigt wurden.

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -93,6 +94,8 @@ export async function POST(request: Request) {
   if (!created) {
     return NextResponse.json({ error: "Paket nicht gefunden." }, { status: 404 });
   }
+
+  revalidateTag("packages", "max");
 
   return NextResponse.json(
     { ...created, highlight: Boolean(created.highlight) },

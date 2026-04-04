@@ -2,13 +2,19 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import { db } from "@/lib/db";
-import { createSession, SESSION_COOKIE } from "@/lib/auth";
-import { hashPassword } from "@/lib/password";
+import {
+  createSession,
+  getSessionCookieOptions,
+  SESSION_COOKIE,
+} from "@/lib/auth";
+import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { sendInquiryEmails, sendNewAccountEmail, sendVerificationEmail } from "@/lib/email";
 import { requireCsrf } from "@/lib/csrf";
 import { getClientIp, rateLimit } from "@/lib/rateLimit";
 import { getSettingValue, normalizeInquiryStatus } from "@/lib/settings";
-import { generateCustomerNumber, generateOrderNumber } from "@/lib/ids";
+import { InvoiceNinjaSync } from "@/lib/invoice-ninja-sync";
+import { generateOrderNumber } from "@/lib/ids";
+import { createKeycloakUser } from "@/lib/keycloak";
 
 const normalizePhone = (value: string) => value.replace(/\s+/g, "");
 
@@ -52,10 +58,18 @@ export async function POST(request: Request) {
               : "",
         }
       : null;
+  const createKeycloakAccount = Boolean(body?.createKeycloakAccount ?? true); // Default: true
 
   if (!firstName || !lastName || !email || !password) {
     return NextResponse.json(
       { error: "Vorname, Nachname, E-Mail und Passwort sind erforderlich." },
+      { status: 400 }
+    );
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json(
+      { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.` },
       { status: 400 }
     );
   }
@@ -93,10 +107,6 @@ export async function POST(request: Request) {
       { error: "Diese E-Mail ist bereits registriert." },
       { status: 409 }
     );
-  }
-
-  if (!customerNumber) {
-    customerNumber = generateCustomerNumber();
   }
 
   if (existing) {
@@ -181,6 +191,42 @@ export async function POST(request: Request) {
     );
   }
 
+  // Invoice Ninja synchronisieren und Kundennummer vom Invoice Ninja übernehmen
+  try {
+    const sync = InvoiceNinjaSync.fromSettings();
+    if (sync) {
+      const syncResult = await sync.syncCustomer({
+        id,
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone || undefined,
+      });
+      if (syncResult?.customer_number) {
+        customerNumber = syncResult.customer_number;
+      }
+    }
+  } catch (error) {
+    console.error("Invoice Ninja Sync fehlgeschlagen bei Registrierung:", error);
+  }
+
+  // Optional: Keycloak-Account erstellen
+  if (createKeycloakAccount) {
+    try {
+      const keycloakUserId = await createKeycloakUser({
+        email,
+        firstName,
+        lastName,
+        phone: phone || undefined,
+        password, // Verwende das lokale Passwort für Keycloak
+      });
+      console.log(`Keycloak-Account erstellt für ${email}: ${keycloakUserId}`);
+    } catch (error) {
+      console.error("Keycloak-Account-Erstellung fehlgeschlagen:", error);
+      // Nicht blockierend - lokale Registrierung geht trotzdem durch
+    }
+  }
+
   try {
     await sendVerificationEmail({
       name: `${firstName} ${lastName}`.trim(),
@@ -252,13 +298,7 @@ export async function POST(request: Request) {
 
   const { token, expiresAt } = await createSession(id);
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    expires: expiresAt,
-    path: "/",
-  });
+  cookieStore.set(SESSION_COOKIE, token, getSessionCookieOptions(expiresAt));
 
   return NextResponse.json({ success: true });
 }

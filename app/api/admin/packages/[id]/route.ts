@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -102,6 +103,8 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Paket nicht gefunden." }, { status: 404 });
   }
 
+  revalidateTag("packages", "max");
+
   return NextResponse.json({ ...updated, highlight: Boolean(updated.highlight) });
 }
 
@@ -119,5 +122,6 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Paket-ID fehlt." }, { status: 400 });
   }
   db.prepare("DELETE FROM packages WHERE id = ?").run(id);
+  revalidateTag("packages", "max");
   return NextResponse.json({ success: true });
 }

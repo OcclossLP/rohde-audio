@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
+import { getPortalHref } from "@/lib/subdomains";
 import { Trash2 } from "lucide-react";
+import AccountInvoices from "./AccountInvoices";
 
 type Profile = {
   firstName: string | null;
@@ -31,8 +32,7 @@ type Inquiry = {
 };
 
 export default function AccountClient({ profile }: { profile: Profile }) {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"profile" | "inquiries">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "inquiries" | "invoices">("profile");
   const [firstName, setFirstName] = useState(profile.firstName ?? "");
   const [lastName, setLastName] = useState(profile.lastName ?? "");
   const [email, setEmail] = useState(profile.email ?? "");
@@ -80,6 +80,10 @@ export default function AccountClient({ profile }: { profile: Profile }) {
       setError("Die Passwörter stimmen nicht überein.");
       return;
     }
+    if (password && password.length < 8) {
+      setError("Das Passwort muss mindestens 8 Zeichen lang sein.");
+      return;
+    }
 
     setSaving(true);
     const response = await csrfFetch("/api/account", {
@@ -117,7 +121,7 @@ export default function AccountClient({ profile }: { profile: Profile }) {
     });
 
     if (response.ok) {
-      router.push("/admin/login");
+      window.location.assign(getPortalHref("admin", "/login"));
       return;
     }
     const payload = await response.json().catch(() => null);
@@ -211,12 +215,13 @@ export default function AccountClient({ profile }: { profile: Profile }) {
           {[
             { id: "inquiries", label: "Anfragen" },
             { id: "profile", label: "Profil" },
+            { id: "invoices", label: "Rechnungen" },
           ].map(({ id, label }) => (
             <button
               key={id}
               type="button"
               onClick={() => {
-                const next = id as "profile" | "inquiries";
+                const next = id as "profile" | "inquiries" | "invoices";
                 setActiveTab(next);
                 if (next === "inquiries" && !inquiries.length) {
                   loadInquiries();
@@ -619,6 +624,10 @@ export default function AccountClient({ profile }: { profile: Profile }) {
               )}
             </div>
           </div>
+        )}
+
+        {activeTab === "invoices" && (
+          <AccountInvoices />
         )}
       </div>
 

@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -245,6 +246,9 @@ export async function POST(request: Request) {
     `
   );
   updates.forEach(([key, value]) => statement.run(key, value));
+
+  revalidateTag("settings", "max");
+  revalidateTag("faqs", "max");
 
   const settings = getSettings();
   return NextResponse.json({ success: true, settings });

@@ -13,20 +13,6 @@ export const isValidCustomerNumber = (value: string) =>
 export const isValidOrderNumber = (value: string) =>
   /^\d{2}0\d{3}$/.test(value);
 
-const getNextSequence = (table: string, column: string, prefix: string, totalLength: number) => {
-  const row = db
-    .prepare(
-      `
-        SELECT MAX(CAST(${column} AS INTEGER)) as maxValue
-        FROM ${table}
-        WHERE ${column} LIKE ? AND length(${column}) = ?
-      `
-    )
-    .get(`${prefix}%`, totalLength) as { maxValue: number | null } | undefined;
-  const currentMax = row?.maxValue ?? 0;
-  const nextValue = currentMax ? currentMax + 1 : Number(`${prefix}${pad(1, totalLength - prefix.length)}`);
-  return String(nextValue);
-};
 
 export const generateCustomerNumber = () => {
   const row = db

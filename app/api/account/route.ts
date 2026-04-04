@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
-import { getCurrentUser, SESSION_COOKIE } from "@/lib/auth";
-import { hashPassword } from "@/lib/password";
+import {
+  getCurrentUser,
+  getExpiredSessionCookieOptions,
+  SESSION_COOKIE,
+} from "@/lib/auth";
+import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { requireCsrf } from "@/lib/csrf";
 
 const normalizePhone = (value: string) => value.replace(/\s+/g, "");
@@ -61,6 +65,13 @@ export async function PATCH(request: Request) {
         { status: 409 }
       );
     }
+  }
+
+  if (password && password.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json(
+      { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.` },
+      { status: 400 }
+    );
   }
 
   const fields = [
@@ -162,13 +173,7 @@ export async function DELETE(request: Request) {
   );
 
   const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    expires: new Date(0),
-    path: "/",
-  });
+  cookieStore.set(SESSION_COOKIE, "", getExpiredSessionCookieOptions());
 
   return NextResponse.json({ success: true });
 }

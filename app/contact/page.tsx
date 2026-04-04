@@ -338,7 +338,6 @@ export default function Contact() {
               Telefonisch oder per E-Mail – wir melden uns schnellstmöglich.
             </p>
             <p>
-              <a href="tel:+491706480129" className="text-purple-500 hover:underline">+49 170 6480129</a><br/>
               <a href="mailto:info@rohde-audio.com" className="text-purple-500 hover:underline">info@rohde-audio.com</a>
             </p>
             <p className="text-gray-400 mt-4">

@@ -2,9 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { requireCsrf } from "@/lib/csrf";
 import { isValidCustomerNumber, reserveCustomerNumber, reserveOrderNumber } from "@/lib/ids";
+import { syncUserToKeycloak } from "@/lib/keycloak";
 
 type UserRow = {
   id: string;
@@ -107,6 +108,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (typeof postalCode !== "undefined") data.postalCode = postalCode || null;
   if (typeof city !== "undefined") data.city = city || null;
   if (typeof password !== "undefined" && password) {
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return NextResponse.json(
+        { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.` },
+        { status: 400 }
+      );
+    }
+
     const { passwordHash, passwordSalt } = hashPassword(password);
     data.passwordHash = passwordHash;
     data.passwordSalt = passwordSalt;
@@ -242,7 +250,17 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 404 });
   }
 
-  return NextResponse.json(updated);
+  let warning: string | null = null;
+  if (typeof password !== "undefined" && password) {
+    try {
+      await syncUserToKeycloak(id, { password, temporaryPassword: false });
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "Unbekannter Fehler";
+      warning = `Lokales Passwort aktualisiert, aber Keycloak-Passwort konnte nicht gesetzt werden: ${reason}`;
+    }
+  }
+
+  return NextResponse.json(warning ? { ...updated, warning } : updated);
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {

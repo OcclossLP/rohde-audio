@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
+import { getPortalHref } from "@/lib/subdomains";
 
 type VerifyClientProps = {
   initialCooldown: number;
@@ -11,7 +11,6 @@ type VerifyClientProps = {
 };
 
 export default function VerifyClient({ initialCooldown, email }: VerifyClientProps) {
-  const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -50,7 +49,7 @@ export default function VerifyClient({ initialCooldown, email }: VerifyClientPro
     }
 
     setMessage("Account bestätigt.");
-    router.push("/account");
+    window.location.assign(getPortalHref("account"));
   };
 
   const handleResend = async () => {

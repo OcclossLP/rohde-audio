@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { requireCsrf } from "@/lib/csrf";
-import { generateCustomerNumber } from "@/lib/ids";
+import { syncUserToKeycloak } from "@/lib/keycloak";
 
 type UserRow = {
   id: string;
@@ -85,6 +85,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return NextResponse.json(
+      { error: `Das Passwort muss mindestens ${MIN_PASSWORD_LENGTH} Zeichen lang sein.` },
+      { status: 400 }
+    );
+  }
+
   const existing = db
     .prepare(
       "SELECT id, deleted_at as deletedAt, is_guest as isGuest, customer_number as customerNumber FROM users WHERE email = ?"
@@ -106,7 +113,8 @@ export async function POST(request: Request) {
   }
 
   if (!customerNumber) {
-    customerNumber = generateCustomerNumber();
+    // Remove customer number generation - will be handled by Invoice Ninja sync
+    customerNumber = null;
   }
 
   if (existing) {
@@ -192,5 +200,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Benutzer nicht gefunden." }, { status: 404 });
   }
 
-  return NextResponse.json(created, { status: 201 });
+  let warning: string | null = null;
+  try {
+    await syncUserToKeycloak(id, { password, temporaryPassword: false });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Unbekannter Fehler";
+    warning = `Benutzer lokal erstellt, aber Keycloak-Sync fehlgeschlagen: ${reason}`;
+  }
+
+  return NextResponse.json(
+    warning ? { ...created, warning } : created,
+    { status: 201 }
+  );
 }
