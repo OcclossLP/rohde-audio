@@ -18,6 +18,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Container Image (GHCR)
+
+Every push to `main` (and tags like `v1.0.0`) publishes a container image to GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/<github-user-or-org>/rohde-audio:latest
+```
+
+Replace `<github-user-or-org>` with the GitHub repository owner.
+
 ## Subdomains
 
 The app supports these portal subdomains out of the box:
