@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { getKeycloakAuthUrl } from "@/lib/keycloak";
+import { shouldUseSecureCookies } from "@/lib/subdomains";
 
 const STATE_COOKIE = "keycloak_state";
 const STATE_EXPIRY_SECONDS = 300;
@@ -12,7 +13,7 @@ export async function GET() {
   const response = NextResponse.redirect(redirectUrl);
   response.cookies.set(STATE_COOKIE, state, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     sameSite: "lax",
     path: "/",
     maxAge: STATE_EXPIRY_SECONDS,

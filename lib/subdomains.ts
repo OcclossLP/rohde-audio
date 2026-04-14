@@ -15,6 +15,24 @@ function normalizeHost(value: string | null | undefined) {
   return (value ?? "").split(":")[0].trim().toLowerCase();
 }
 
+function parseBooleanEnv(value: string | undefined) {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  return undefined;
+}
+
+export function shouldUseSecureCookies() {
+  const explicit = parseBooleanEnv(
+    process.env.COOKIE_SECURE ?? process.env.AUTH_COOKIE_SECURE
+  );
+  if (typeof explicit === "boolean") {
+    return explicit;
+  }
+  return process.env.NODE_ENV === "production";
+}
+
 export function getSubdomainFromHost(host: string | null | undefined) {
   const normalized = normalizeHost(host);
 
@@ -150,6 +168,7 @@ export function getCookieOptions(
   overrides: Partial<{
     httpOnly: boolean;
     expires: Date;
+    maxAge: number;
     sameSite: "lax" | "strict" | "none";
     secure: boolean;
     sharedDomain: boolean;
@@ -161,7 +180,7 @@ export function getCookieOptions(
   return {
     httpOnly: true,
     sameSite: "strict" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     path: "/",
     ...(domain ? { domain } : {}),
     ...cookieOverrides,

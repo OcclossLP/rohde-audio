@@ -28,6 +28,14 @@ docker pull ghcr.io/<github-user-or-org>/rohde-audio:latest
 
 Replace `<github-user-or-org>` with the GitHub repository owner.
 
+If you run the container over plain `http://` (without TLS), set:
+
+```bash
+COOKIE_SECURE=false
+```
+
+Otherwise, CSRF/session cookies are marked `Secure` and browser actions (login/forms/admin updates) will fail on HTTP.
+
 ## Subdomains
 
 The app supports these portal subdomains out of the box:
