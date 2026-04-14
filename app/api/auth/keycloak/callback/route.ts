@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
   let tokenResponse;
   try {
-    tokenResponse = await exchangeKeycloakCode(code);
+    tokenResponse = await exchangeKeycloakCode(code, request);
   } catch (error) {
     console.error("Keycloak token exchange failed:", error);
     return redirectWithStateCleanup(request, "/admin/login?error=oauth_token_failed");

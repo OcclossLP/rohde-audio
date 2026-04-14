@@ -7,19 +7,65 @@ const KEYCLOAK_ISSUER = process.env.KEYCLOAK_ISSUER?.replace(/\/+$/, "") ?? "";
 const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM ?? "rohde-audio";
 const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID ?? "";
 const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET ?? "";
-const KEYCLOAK_REDIRECT_URI =
-  process.env.KEYCLOAK_REDIRECT_URI ??
-  `${process.env.NEXT_PUBLIC_SITE_URL ?? process.env.SITE_URL ?? "http://localhost:3000"}/api/auth/keycloak/callback`;
+
+function firstHeaderValue(value: string | null | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .find(Boolean) ?? "";
+}
+
+function normalizeBaseUrl(value: string) {
+  return value.replace(/\/+$/, "");
+}
+
+function resolveRequestOrigin(request?: Request) {
+  if (!request) return null;
+
+  const url = new URL(request.url);
+  const forwardedHost = firstHeaderValue(request.headers.get("x-forwarded-host"));
+  const host = forwardedHost || firstHeaderValue(request.headers.get("host"));
+  const forwardedProto = firstHeaderValue(request.headers.get("x-forwarded-proto"));
+  const protocol = (forwardedProto || url.protocol.replace(":", "")).toLowerCase();
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return url.origin;
+}
+
+export function getKeycloakRedirectUri(request?: Request) {
+  if (process.env.KEYCLOAK_REDIRECT_URI) {
+    return process.env.KEYCLOAK_REDIRECT_URI;
+  }
+
+  const configuredBaseUrl = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
+  if (configuredBaseUrl) {
+    return `${normalizeBaseUrl(configuredBaseUrl)}/api/auth/keycloak/callback`;
+  }
+
+  const requestOrigin = resolveRequestOrigin(request);
+  if (requestOrigin) {
+    return `${normalizeBaseUrl(requestOrigin)}/api/auth/keycloak/callback`;
+  }
+
+  return "http://localhost:3000/api/auth/keycloak/callback";
+}
+
+export function isKeycloakAuthConfigured() {
+  return Boolean(KEYCLOAK_ISSUER && KEYCLOAK_CLIENT_ID);
+}
 
 function getRealmUrl() {
   return `${KEYCLOAK_ISSUER}/realms/${KEYCLOAK_REALM}`;
 }
 
-export function getKeycloakAuthUrl(state: string) {
+export function getKeycloakAuthUrl(state: string, request?: Request) {
   const authUrl = `${getRealmUrl()}/protocol/openid-connect/auth`;
   const params = new URLSearchParams({
     client_id: KEYCLOAK_CLIENT_ID,
-    redirect_uri: KEYCLOAK_REDIRECT_URI,
+    redirect_uri: getKeycloakRedirectUri(request),
     response_type: "code",
     scope: "openid email profile",
     state,
@@ -28,15 +74,17 @@ export function getKeycloakAuthUrl(state: string) {
   return `${authUrl}?${params.toString()}`;
 }
 
-export async function exchangeKeycloakCode(code: string) {
+export async function exchangeKeycloakCode(code: string, request?: Request) {
   const tokenUrl = `${getRealmUrl()}/protocol/openid-connect/token`;
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: KEYCLOAK_CLIENT_ID,
-    client_secret: KEYCLOAK_CLIENT_SECRET,
     code,
-    redirect_uri: KEYCLOAK_REDIRECT_URI,
+    redirect_uri: getKeycloakRedirectUri(request),
   });
+  if (KEYCLOAK_CLIENT_SECRET) {
+    body.set("client_secret", KEYCLOAK_CLIENT_SECRET);
+  }
 
   const response = await fetch(tokenUrl, {
     method: "POST",

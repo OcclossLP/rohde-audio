@@ -1,17 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { theme } from "@/app/components/Theme";
 import { csrfFetch } from "@/app/components/csrfFetch";
 import { getPortalHref } from "@/lib/subdomains";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
+  const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const oauthError = searchParams?.get("error") ?? "";
+  const oauthErrorMessage =
+    oauthError === "oauth_state_mismatch"
+      ? "SSO-Anmeldung abgebrochen oder Session abgelaufen. Bitte erneut versuchen."
+      : oauthError === "oauth_token_failed"
+        ? "SSO-Token konnte nicht abgerufen werden. Prüfe Keycloak-Konfiguration und Redirect-URL."
+        : oauthError === "oauth_userinfo_failed"
+          ? "SSO-Benutzerdaten konnten nicht geladen werden."
+          : oauthError === "oauth_no_email"
+            ? "SSO-Anmeldung fehlgeschlagen: Kein E-Mail-Wert vom Provider erhalten."
+            : oauthError === "oauth_not_configured"
+              ? "Keycloak ist nicht vollständig konfiguriert (KEYCLOAK_ISSUER / KEYCLOAK_CLIENT_ID)."
+              : null;
+  const displayError = error ?? oauthErrorMessage;
 
   useEffect(() => {
     csrfFetch("/api/csrf").catch(() => null);
@@ -59,9 +75,9 @@ export default function AdminLoginPage() {
           Melde dich an, um dein Konto zu verwalten.
         </p>
 
-        {error && (
+        {displayError && (
           <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-red-200">
-            {error}
+            {displayError}
           </div>
         )}
 
