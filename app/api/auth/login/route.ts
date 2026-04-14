@@ -19,7 +19,8 @@ async function ensureAdminFromEnv() {
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminEmail || !adminPassword) return;
 
-  const normalizedEmail = adminEmail.toLowerCase();
+  const normalizedEmail = adminEmail.trim().toLowerCase();
+  const adminName = (process.env.ADMIN_NAME || "Admin").trim() || "Admin";
   const existingByEmail = db
     .prepare(
       "SELECT id, customer_number as customerNumber, deleted_at as deletedAt FROM users WHERE email = ?"
@@ -30,11 +31,12 @@ async function ensureAdminFromEnv() {
 
   if (existingByEmail) {
     const { passwordHash, passwordSalt } = hashPassword(adminPassword);
-    // Remove customer number generation - will be handled by Invoice Ninja sync
     db.prepare(
       `
         UPDATE users
-        SET role = 'ADMIN',
+        SET email = ?,
+            name = ?,
+            role = 'ADMIN',
             password_hash = ?,
             password_salt = ?,
             deleted_at = NULL,
@@ -42,17 +44,44 @@ async function ensureAdminFromEnv() {
             updated_at = ?
         WHERE id = ?
       `
-    ).run(passwordHash, passwordSalt, new Date().toISOString(), existingByEmail.id);
+    ).run(
+      normalizedEmail,
+      adminName,
+      passwordHash,
+      passwordSalt,
+      new Date().toISOString(),
+      existingByEmail.id
+    );
     return;
   }
 
   const existingAdmin = db
     .prepare(
-      "SELECT id, customer_number as customerNumber FROM users WHERE role = 'ADMIN' AND deleted_at IS NULL LIMIT 1"
+      "SELECT id FROM users WHERE role = 'ADMIN' AND deleted_at IS NULL LIMIT 1"
     )
-    .get() as { id: string; customerNumber: string | null } | undefined;
+    .get() as { id: string } | undefined;
   if (existingAdmin) {
-    // Remove customer number generation - will be handled by Invoice Ninja sync
+    const { passwordHash, passwordSalt } = hashPassword(adminPassword);
+    db.prepare(
+      `
+        UPDATE users
+        SET email = ?,
+            name = ?,
+            password_hash = ?,
+            password_salt = ?,
+            deleted_at = NULL,
+            is_guest = 0,
+            updated_at = ?
+        WHERE id = ?
+      `
+    ).run(
+      normalizedEmail,
+      adminName,
+      passwordHash,
+      passwordSalt,
+      new Date().toISOString(),
+      existingAdmin.id
+    );
     return;
   }
 
@@ -67,7 +96,7 @@ async function ensureAdminFromEnv() {
   ).run(
     crypto.randomUUID(),
     normalizedEmail,
-    process.env.ADMIN_NAME || "Admin",
+    adminName,
     null, // customer_number will be set by Invoice Ninja sync
     "ADMIN",
     passwordHash,

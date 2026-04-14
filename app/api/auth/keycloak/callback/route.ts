@@ -1,12 +1,18 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { exchangeKeycloakCode, fetchKeycloakUserinfo, findOrCreateKeycloakUser } from "@/lib/keycloak";
+import {
+  exchangeKeycloakCode,
+  fetchKeycloakUserinfo,
+  findOrCreateKeycloakUser,
+  getPublicAppBaseUrl,
+} from "@/lib/keycloak";
 import { createSession, getSessionCookieOptions, SESSION_COOKIE } from "@/lib/auth";
 
 const STATE_COOKIE = "keycloak_state";
 
 function redirectWithStateCleanup(request: Request, pathname: string) {
-  const response = NextResponse.redirect(new URL(pathname, request.url));
+  const appBaseUrl = getPublicAppBaseUrl(request);
+  const response = NextResponse.redirect(new URL(pathname, appBaseUrl));
   response.cookies.set(STATE_COOKIE, "", { path: "/", maxAge: 0 });
   return response;
 }

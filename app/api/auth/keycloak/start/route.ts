@@ -1,6 +1,10 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import { getKeycloakAuthUrl, isKeycloakAuthConfigured } from "@/lib/keycloak";
+import {
+  getKeycloakAuthUrl,
+  getPublicAppBaseUrl,
+  isKeycloakAuthConfigured,
+} from "@/lib/keycloak";
 import { shouldUseSecureCookies } from "@/lib/subdomains";
 
 const STATE_COOKIE = "keycloak_state";
@@ -8,7 +12,8 @@ const STATE_EXPIRY_SECONDS = 300;
 
 export async function GET(request: Request) {
   if (!isKeycloakAuthConfigured()) {
-    return NextResponse.redirect(new URL("/admin/login?error=oauth_not_configured", request.url));
+    const appBaseUrl = getPublicAppBaseUrl(request);
+    return NextResponse.redirect(new URL("/admin/login?error=oauth_not_configured", appBaseUrl));
   }
 
   const state = crypto.randomBytes(16).toString("hex");

@@ -19,6 +19,14 @@ function normalizeBaseUrl(value: string) {
   return value.replace(/\/+$/, "");
 }
 
+function normalizeOrigin(value: string) {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return normalizeBaseUrl(value);
+  }
+}
+
 function resolveRequestOrigin(request?: Request) {
   if (!request) return null;
 
@@ -35,22 +43,25 @@ function resolveRequestOrigin(request?: Request) {
   return url.origin;
 }
 
-export function getKeycloakRedirectUri(request?: Request) {
-  if (process.env.KEYCLOAK_REDIRECT_URI) {
-    return process.env.KEYCLOAK_REDIRECT_URI;
-  }
-
+export function getPublicAppBaseUrl(request?: Request) {
   const configuredBaseUrl = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
   if (configuredBaseUrl) {
-    return `${normalizeBaseUrl(configuredBaseUrl)}/api/auth/keycloak/callback`;
+    return normalizeOrigin(configuredBaseUrl);
   }
 
   const requestOrigin = resolveRequestOrigin(request);
   if (requestOrigin) {
-    return `${normalizeBaseUrl(requestOrigin)}/api/auth/keycloak/callback`;
+    return normalizeBaseUrl(requestOrigin);
   }
 
-  return "http://localhost:3000/api/auth/keycloak/callback";
+  return "http://localhost:3000";
+}
+
+export function getKeycloakRedirectUri(request?: Request) {
+  if (process.env.KEYCLOAK_REDIRECT_URI) {
+    return process.env.KEYCLOAK_REDIRECT_URI;
+  }
+  return `${getPublicAppBaseUrl(request)}/api/auth/keycloak/callback`;
 }
 
 export function isKeycloakAuthConfigured() {
